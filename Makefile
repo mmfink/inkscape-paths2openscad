@@ -1,4 +1,5 @@
 MAKE = /usr/bin/make
+DEST=/usr/share/inkscape/extensions
 
 NAME = $(notdir $(CURDIR))
 
@@ -15,7 +16,12 @@ test: virtualenv
 		$(MAKE) METHOD=git python-pep8
 
 .PHONY: clean
-clean: clean-build clean-download clean-virtualenv
+clean: clean-build clean-download clean-virtualenv clean-dist
+
+.PHONY: clean-dist
+clean-dist:
+	$(RM) -rf distribute/$(NAME)
+	$(RM) -rf distribute/deb/files
 
 .PHONY: clean-build
 clean-build:
@@ -29,6 +35,18 @@ clean-download:
 clean-virtualenv:
 	$(RM) virtualenv
 	$(RM) -r virtualenv-*/
+
+
+.PHONY: dist
+dist:
+	cd distribute; sh ./distribute.sh
+
+#install is used by dist.
+install:
+	mkdir -p $(DEST)
+	install -m 755 -t $(DEST) *.py
+	install -m 644 -t $(DEST) *.inx
+
 
 include make-includes/python.mk
 include make-includes/variables.mk
