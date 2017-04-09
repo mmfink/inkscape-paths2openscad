@@ -595,7 +595,7 @@ class OpenSCAD(inkex.Effect):
             object_merge_auto_values(auto, node)
 
         call_item = 'translate ([0,0,%s]) poly_%s(%s);\n' % (
-                auto['raise'], id, auto['height'])
+            auto['raise'], id, auto['height'])
 
         if auto['neg']:
             self.call_list_neg.append(call_item)

@@ -13,8 +13,8 @@ mkdir $tmp
 cp description-pak files
 cd files
 fakeroot checkinstall --fstrans --reset-uid --type debian \
-  --install=no -y --pkgname $name --pkgversion $vers --arch all \
-  --pkglicense LGPL --pkggroup other --pakdir ../$tmp --pkgsource $url \
+  --install=no -y --pkgname $name --pkgversion $vers --pkgrelease 2 --arch all \
+  --pkglicense CC-BY-SA-3.0 --pkggroup other --pakdir ../$tmp --pkgsource $url \
   --pkgaltsource "http://fablab-nuernberg.de" \
   --maintainer "'Juergen Weigert (juergen@fabmail.org)'" \
   --requires "'$requires'" make install \
