@@ -21,6 +21,9 @@
 #
 # 2017-03-11, juergen@fabmail.org
 #   0.12        parse svg width="400mm" correctly. Came out downscaled by 3...
+# 2017-04-08, juergen@fabmail.org
+#   0.13        allow letter 'a' prefix on height values for anti-matter.
+#               All anti-matter objects are subtracted from all normal objects.
 #
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
@@ -56,9 +59,9 @@ DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
 # Parse all these as 56.7 mm height:
 #  "path1234_56_7_mm", "pat1234____57.7mm", "path1234_57.7__mm"
-RE_AUTO_HEIGHT_ID = re.compile(r".*?_+(\d+(?:[_\.]\d+)?)_*mm$")
+RE_AUTO_HEIGHT_ID = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
 RE_AUTO_HEIGHT_DESC = re.compile(
-    r"^(?:ht|height):\s*(\d+(?:\.\d+)?) ?mm$",
+    r"^(?:ht|height):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
     re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
@@ -312,6 +315,7 @@ class OpenSCAD(inkex.Effect):
 
         # Output file handling
         self.call_list = []
+        self.call_list_neg = []		# anti-matter objects (holes via difference)
         self.pathid = int(0)
 
         # Output file
@@ -568,7 +572,10 @@ class OpenSCAD(inkex.Effect):
                 if found_height:
                     height = found_height[-1].replace("_", ".")
 
-        self.call_list.append('poly_%s(%s);\n' % (id, height))
+        if height[0] in ('a', 'A'):
+            self.call_list_neg.append('poly_%s(%s);\n' % (id, height[1:]))
+        else:
+            self.call_list.append('poly_%s(%s);\n' % (id, height))
 
         for i in range(0, len(path)):
 
@@ -1043,9 +1050,13 @@ fudge = 0.1;
             self.f.write('\nmodule %s(h)\n{\n' % name)
 
             # Now output the list of modules to call
-            self.f.write('\n')
+            self.f.write('  difference()\n  {\n    union()\n    {\n')
             for call in self.call_list:
-                self.f.write(call)
+                self.f.write('      '+call)
+            self.f.write('    }\n    union()\n    {\n')
+            for call in self.call_list_neg:
+                self.f.write('      '+call)
+            self.f.write('    }\n  }\n')
 
             # The module that calls all the other ones.
             self.f.write('}\n\n%s(%s);\n' % (name, self.options.height))

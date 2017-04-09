@@ -44,10 +44,17 @@ format, then XXX is translated into height in millimeters.
 Use . or _ as separator for a decimal number.
 Note that all whitespace or comma are saved as '_' in ID.
 
+If the height is prefixed with a letter 'a', the 
+object is anti-matter, that is, it is cut away (subtracted)
+from all normal objects.
+
 If the polygon's description contains line like
 height: XXX mm
-where XXX is any decimal number (use . as separator),
-then the height is set to XXX millimeters.
+where XXX is any decimal number (optionally prefixed 
+with a letter 'a' for anti-matter) then the height 
+is set to XXX millimeters.
+Here a . is the separator for the decimal number.
+
 Note that the description has preference over ID.
 
 Otherwise, the height parameter is used.
@@ -73,7 +80,7 @@ to millimeters using the SVG Standard's
 definition of 90 pixels = 1 inch -- since
 inkscape 0.92: 96 pixels = 1 inch.
 
-v0.12
+v0.13
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
