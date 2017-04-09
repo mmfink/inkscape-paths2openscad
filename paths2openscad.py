@@ -24,7 +24,9 @@
 # 2017-04-08, juergen@fabmail.org
 #   0.13        allow letter 'a' prefix on height values for anti-matter.
 #               All anti-matter objects are subtracted from all normal objects.
-#
+#               raise: Offset along Z axis, to make cut-outs and balconies.
+#               Refactored object_merge_auto_values() from convertPath().
+#               Inheriting auto values from enclosing groups.
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 # CAUTION: indentation and whitespace issues due to pep8 compatibility.
@@ -61,8 +63,11 @@ DEFAULT_HEIGHT = 100
 #  "path1234_56_7_mm", "pat1234____57.7mm", "path1234_57.7__mm"
 RE_AUTO_HEIGHT_ID = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
 RE_AUTO_HEIGHT_DESC = re.compile(
-    r"^(?:ht|height):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
+    r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
     re.MULTILINE)
+RE_AUTO_RAISE_DESC = re.compile(
+        r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
+        re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
@@ -520,6 +525,33 @@ class OpenSCAD(inkex.Effect):
 
     def convertPath(self, node):
 
+        def object_merge_auto_values(auto, node):
+
+            # recurse into parents, to inherit values from enclosing groups
+            p = node.getparent()
+            if p is not None and p.tag in (inkex.addNS('g', 'svg'), 'g'):
+                object_merge_auto_values(auto, p)
+
+            # let the node override inherited values
+            rawid = node.get('id', '')
+            if rawid is not None:
+                height = RE_AUTO_HEIGHT_ID.findall(rawid)
+                if height:
+                    auto['height'] = height[-1].replace("_", ".")
+            # let description contents override id contents.
+            for tagname in DESC_TAGS:
+                desc_node = node.find("./%s" % tagname)
+                if desc_node is not None:
+                    height = RE_AUTO_HEIGHT_DESC.findall(desc_node.text)
+                    if height:
+                        auto['height'] = height[-1]
+                    zraise = RE_AUTO_RAISE_DESC.findall(desc_node.text)
+                    if zraise:
+                        auto['raise'] = zraise[-1]
+            if auto['height'][0] in ('a', 'A'):
+                auto['neg'] = True
+                auto['height'] = auto['height'][1:]
+
         path = self.paths[node]
         if (path is None) or (len(path) == 0):
             return
@@ -558,24 +590,17 @@ class OpenSCAD(inkex.Effect):
         # And add the call to the call list
         # Height is set by the overall module parameter
         # unless an auto-height is found.
-        height = 'h'
+        auto = { 'height': 'h', 'raise': '0', 'neg': False }
         if self.options.autoheight == 'true':
-            for tagname in DESC_TAGS:
-                desc_node = node.find("./%s" % tagname)
-                if desc_node is not None:
-                    found_height = RE_AUTO_HEIGHT_DESC.findall(desc_node.text)
-                    if found_height:
-                        height = found_height[-1]
-                        break
-            else:
-                found_height = RE_AUTO_HEIGHT_ID.findall(rawid)
-                if found_height:
-                    height = found_height[-1].replace("_", ".")
+            object_merge_auto_values(auto, node)
 
-        if height[0] in ('a', 'A'):
-            self.call_list_neg.append('poly_%s(%s);\n' % (id, height[1:]))
+        call_item = 'translate ([0,0,%s]) poly_%s(%s);\n' % (
+                auto['raise'], id, auto['height'])
+
+        if auto['neg']:
+            self.call_list_neg.append(call_item)
         else:
-            self.call_list.append('poly_%s(%s);\n' % (id, height))
+            self.call_list.append(call_item)
 
         for i in range(0, len(path)):
 
@@ -1062,8 +1087,9 @@ fudge = 0.1;
             self.f.write('}\n\n%s(%s);\n' % (name, self.options.height))
             self.f.close()
 
-        except:
+        except IOError as e:
             inkex.errormsg('Unable to write file ' + self.options.fname)
+            inkex.errormsg("ERROR: " + str(e))
 
         if self.options.scad2stl == 'true' or self.options.stlpost == 'true':
             stl_fname = re.sub(r"\.SCAD", "", full_fname, flags=re.I) + '.stl'

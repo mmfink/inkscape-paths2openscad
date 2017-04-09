@@ -17,21 +17,26 @@
     <_param name="height_help" type="description">Specify how high in millimeters to extrude the polygons.</_param>
 
     <param name="smoothness" type="float" min="0.0001" max="5" _gui-text="Smoothing">0.2</param>
-    <_param name="smoothness_help" type="description">Define how smoothly to render curves. Use smaller values for smoother curves.</_param>
+    <_param name="smoothness_help" type="description">Define how smoothly to render curves. Use smaller values for smoother curves.
+    </_param>
 
     <param name="autoheight" type="boolean" _gui-text="Auto Height">false</param>
     <_param name="autoheight_help" type="description">Set the extruded height for a specific polygon based on its description or ID. See the Auto Height tab.
     </_param>
 
     <param name="scad2stl" type="boolean" _gui-text="Convert to STL">false</param>
-    <_param name="scad2stl_help" type="description">Also save an .stl file next to the specified output file. Use '{SCAD}' for the openSCAD input and '{STL}' for the STL output in the following </_param>
+    <_param name="scad2stl_help" type="description">Also save an .stl file next to the specified output file. Use '{SCAD}' for the openSCAD input and '{STL}' for the STL output in the following</_param>
     <!-- CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py -->
     <param name="scad2stlcmd" type="string" _gui-text="  command: ">openscad '{SCAD}' -o '{STL}'</param>
+    <_param name="scad2stl_space" type="description"><p/>
+    </_param>
 
     <param name="stlpost" type="boolean" _gui-text="STL postprocessing">false</param>
     <_param name="stlpost_help" type="description">Start e.g. a slicer after running the command above. Use '{STL}' for the STL file with the following</_param>
     <!-- CAUTION: keep this command in sync with the default INX_STL_POSTPROCESSING in paths2openscad.py -->
     <param name="stlpostcmd" type="string" _gui-text="  command: ">cura '{STL}' &amp;</param>
+    <_param name="stlpost_space" type="description"><p/>
+    </_param>
 
   </page>
   <page name="autoheight" _gui-text="Auto Height">
@@ -48,12 +53,15 @@ If the height is prefixed with a letter 'a', the
 object is anti-matter, that is, it is cut away (subtracted)
 from all normal objects.
 
-If the polygon's description contains line like
+Syntax for the polygon's description field:
 height: XXX mm
-where XXX is any decimal number (optionally prefixed 
-with a letter 'a' for anti-matter) then the height 
-is set to XXX millimeters.
-Here a . is the separator for the decimal number.
+  where XXX is any decimal number (optionally prefixed 
+  with a letter 'a' for anti-matter) then the height 
+  is set to XXX millimeters.
+  Here a . is the separator for the decimal number.
+
+raise: XXX mm
+  Move the object upwards to create a hole (with 'a') or balcony.
 
 Note that the description has preference over ID.
 
