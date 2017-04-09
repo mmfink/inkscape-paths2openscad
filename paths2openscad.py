@@ -590,7 +590,7 @@ class OpenSCAD(inkex.Effect):
         # And add the call to the call list
         # Height is set by the overall module parameter
         # unless an auto-height is found.
-        auto = { 'height': 'h', 'raise': '0', 'neg': False }
+        auto = {'height': 'h', 'raise': '0', 'neg': False}
         if self.options.autoheight == 'true':
             object_merge_auto_values(auto, node)
 
