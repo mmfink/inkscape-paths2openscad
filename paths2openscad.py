@@ -66,8 +66,8 @@ RE_AUTO_HEIGHT_DESC = re.compile(
     r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
     re.MULTILINE)
 RE_AUTO_RAISE_DESC = re.compile(
-        r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
-        re.MULTILINE)
+    r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
+    re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
