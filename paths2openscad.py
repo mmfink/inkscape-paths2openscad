@@ -27,6 +27,13 @@
 #               raise: Offset along Z axis, to make cut-outs and balconies.
 #               Refactored object_merge_auto_values() from convertPath().
 #               Inheriting auto values from enclosing groups.
+# 2017-04-10, juergen@fabmail.org
+#   0.14        Started merging V7 outline mode by Neon22.
+# 2017-04-16, juergen@fabmail.org
+#   0.15        Fixed https://github.com/fablabnbg/inkscape-paths2openscad/issues/1#issuecomment-294257592
+#               Line width of V7 code became a minimum line width, 
+#               rendering is now based on stroke-width 
+#               Refactored LengthWithUnit() from getLength()
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 # CAUTION: indentation and whitespace issues due to pep8 compatibility.
@@ -75,7 +82,7 @@ INX_SCAD2STL = os.getenv('INX_SCAD2STL', "openscad '{SCAD}' -o '{STL}'")
 INX_STL_POSTPROCESSING = os.getenv('INX_STL_POSTPROCESSING', "cura '{STL}' &")
 
 
-def parseLengthWithUnits(str):
+def parseLengthWithUnits(str, default_unit='px'):
     '''
     Parse an SVG value which may or may not have units attached
     This version is greatly simplified in that it only allows: no units,
@@ -85,7 +92,7 @@ def parseLengthWithUnits(str):
     With inkscape 0.91 we need other units too: e.g. svg:width="400mm"
     '''
 
-    u = 'px'
+    u = default_unit
     s = str.strip()
     if s[-2:] in ('px', 'pt', 'pc', 'mm', 'cm', 'in', 'ft'):
         u = s[-2:]
@@ -100,7 +107,6 @@ def parseLengthWithUnits(str):
         return None, None
 
     return v, u
-
 
 def pointInBBox(pt, bbox):
     '''
@@ -259,9 +265,46 @@ def subdivideCubicPath(sp, flat, i=1):
         sp[i:1] = [p]
 
 
+def closed_p(path):
+    """ path[0] is the path to check """
+    result = False
+    thepath = path[0]
+    if isinstance(thepath[0][0], list):
+        result = True
+    if (thepath[0][0] == thepath[-1][0]) and (thepath[0][1] == thepath[-1][1]):
+        result = True
+    return result
+
+
+def msg_linear_extrude(id, prefix):
+    msg = '    linear_extrude(height=h)\n' + \
+          '      polygon(%s_%d_points);\n' % (id, prefix)
+    return msg
+
+
+def msg_linear_extrude_by_paths(id, prefix):
+    msg = '    linear_extrude(height=h)\n' + \
+          '      polygon(%s_%d_points, %s_%d_paths);\n' % \
+          (id, prefix, id, prefix)
+    return msg
+
+
+def msg_extrude_by_hull(id, prefix):
+    msg = '    for (t = [0: len(%s_%d_points)-2]) {\n' % (id, prefix) + \
+          '      hull() {\n' + \
+          '        translate(%s_%d_points[t]) \n' % (id, prefix) + \
+          '          cylinder(h=h, r=w/2, $fn=res);\n' + \
+          '        translate(%s_%d_points[t + 1]) \n' % (id, prefix) + \
+          '          cylinder(h=h, r=w/2, $fn=res);\n' + \
+          '      }\n' + \
+          '    }\n'
+    return msg
+
+
 class OpenSCAD(inkex.Effect):
     def __init__(self):
 
+        inkex.localize()    # does not help for localizing my *.inx file
         inkex.Effect.__init__(self)
 
         self.OptionParser.add_option(
@@ -277,6 +320,20 @@ class OpenSCAD(inkex.Effect):
         self.OptionParser.add_option(
             '--height', dest='height', type='string', default='5',
             action='store', help='Height (mm)')
+
+        self.OptionParser.add_option(
+            '--min_line_width', dest='min_line_width', type='float',
+            default=float(1), action='store',
+            help='Line width for non closed curves (mm)')
+
+        self.OptionParser.add_option("-n",'--line_fn', dest='line_fn',
+            type='int', default=int( 4 ), action='store',
+            help='Line width precision ($fn when constructing hull)' )
+
+        self.OptionParser.add_option(
+            "--force_line", action="store", type="inkbool",
+            dest="force_line", default=False,
+            help="Force outline mode.")
 
         self.OptionParser.add_option(
             '--fname', dest='fname', type='string', default='~/inkscape.scad',
@@ -307,6 +364,7 @@ class OpenSCAD(inkex.Effect):
             '(typically a slicer). Use {STL} for the STL filename.')
 
         self.dpi = 90.0                # factored out for inkscape-0.92
+        self.px_used = False           # raw px unit depends on correct dpi.
         self.cx = float(DEFAULT_WIDTH) / 2.0
         self.cy = float(DEFAULT_HEIGHT) / 2.0
         self.xmin, self.xmax = (1.0E70, -1.0E70)
@@ -348,37 +406,41 @@ class OpenSCAD(inkex.Effect):
         Note that SVG defines 90 px = 1 in = 25.4 mm.
         Note: Since inkscape 0.92 we use the CSS standard of 96 px = 1 in.
         '''
-
         str = self.document.getroot().get(name)
         if str:
-            v, u = parseLengthWithUnits(str)
-            if not v:
-                # Couldn't parse the value
-                return None
-            elif (u == 'mm'):
-                return float(v) * (self.dpi / 25.4)
-            elif (u == 'cm'):
-                return float(v) * (self.dpi * 10.0 / 25.4)
-            elif (u == 'm'):
-                return float(v) * (self.dpi * 1000.0 / 25.4)
-            elif (u == 'in'):
-                return float(v) * self.dpi
-            elif (u == 'ft'):
-                return float(v) * 12.0 * self.dpi
-            elif (u == 'pt'):
-                # Use modern "Postscript" points of 72 pt = 1 in instead
-                # of the traditional 72.27 pt = 1 in
-                return float(v) * (self.dpi / 72.0)
-            elif (u == 'pc'):
-                return float(v) * (self.dpi / 6.0)
-            elif (u == 'px'):
-                return float(v)
-            else:
-                # Unsupported units
-                return None
+            return self.LengthWithUnit(str)
         else:
             # No width specified; assume the default value
             return float(default)
+
+    def LengthWithUnit(self, str, default_unit='px'):
+        v, u = parseLengthWithUnits(str, default_unit)
+        if not v:
+            # Couldn't parse the value
+            return None
+        elif (u == 'mm'):
+            return float(v) * (self.dpi / 25.4)
+        elif (u == 'cm'):
+            return float(v) * (self.dpi * 10.0 / 25.4)
+        elif (u == 'm'):
+            return float(v) * (self.dpi * 1000.0 / 25.4)
+        elif (u == 'in'):
+            return float(v) * self.dpi
+        elif (u == 'ft'):
+            return float(v) * 12.0 * self.dpi
+        elif (u == 'pt'):
+            # Use modern "Postscript" points of 72 pt = 1 in instead
+            # of the traditional 72.27 pt = 1 in
+            return float(v) * (self.dpi / 72.0)
+        elif (u == 'pc'):
+            return float(v) * (self.dpi / 6.0)
+        elif (u == 'px'):
+            self.px_used = True
+            return float(v)
+        else:
+            # Unsupported units
+            return None
+
 
     def getDocProps(self):
 
@@ -388,21 +450,37 @@ class OpenSCAD(inkex.Effect):
         expressed in units of percentages.
         '''
 
-        self.docHeight = self.getLength('height', DEFAULT_HEIGHT)
-        self.docWidth = self.getLength('width', DEFAULT_WIDTH)
         inkscape_version = self.document.getroot().get(
             "{http://www.inkscape.org/namespaces/inkscape}version")
+        sodipodi_docname = self.document.getroot().get(
+            "{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}docname")
         # a simple 'inkscape:version' does not work here. sigh....
+        #
+        # BUG:
+        # inkscape 0.92 uses 96 dpi, inkscape 0.91 uses 90 dpi.
+        # From inkscape 0.92 we receive an svg document that has
+        # both inkscape:version and sodipodi:docname if the document
+        # was ever saved before. If not, both elements are missing.
+        #
+        import lxml.etree
+        inkex.errormsg( lxml.etree.tostring(self.document.getroot()) )
         if inkscape_version:
             '''
             inkscape:version="0.91 r"
             inkscape:version="0.92.0 ..."
-            See also https://github.com/fablabnbg/paths2openscad/issues/1
+           See also https://github.com/fablabnbg/paths2openscad/issues/1
             '''
+            inkex.errormsg("inkscape:version="+inkscape_version)
             m = re.match(r"(\d+)\.(\d+)", inkscape_version)
             if m:
                 if int(m.group(1)) > 0 or int(m.group(2)) > 91:
                     self.dpi = 96                # 96dpi since inkscape 0.92
+                    inkex.errormsg("switching to 96 dpi")
+
+        # BUGFIX https://github.com/fablabnbg/inkscape-paths2openscad/issues/1
+        # get height and width after dpi. This is needed in case of e.g. mm units.
+        self.docHeight = self.getLength('height', DEFAULT_HEIGHT)
+        self.docWidth = self.getLength('width', DEFAULT_WIDTH)
 
         if (self.docHeight is None) or (self.docWidth is None):
             return False
@@ -523,6 +601,15 @@ class OpenSCAD(inkex.Effect):
         if len(subpath_list) > 0:
             self.paths[node] = subpath_list
 
+    def getPathStyle(self, node):
+        style = node.get('style', '')
+        ret = {}
+        # fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1
+        for elem in style.split(';'):
+            (key, val) = elem.strip().split(':')
+            ret[key] = val
+        return ret
+ 
     def convertPath(self, node):
 
         def object_merge_auto_values(auto, node):
@@ -583,7 +670,21 @@ class OpenSCAD(inkex.Effect):
             self.pathid += 1
         else:
             id = re.sub('[^A-Za-z0-9_]+', '', rawid)
-        self.f.write('module poly_' + id + '(h)\n{\n')
+
+        style = self.getPathStyle(node)
+        stroke_width = style.get('stroke-width', '1')
+        # FIXME: works with document units == 'mm', but otherwise untested..
+        stroke_width_mm = self.LengthWithUnit(stroke_width, default_unit='mm')
+        stroke_width_mm = str(stroke_width_mm * 25.4 / self.dpi)  # px to mm
+        fill_color = style.get('fill', '#FFF')
+        if (fill_color == 'none') or self.options.force_line:
+            filled = False
+        else:
+            filled = True
+        inkex.errormsg('filled='+str(filled))
+        # inkex.errormsg(id+': style='+str(style))
+
+        self.f.write('module poly_' + id + '(h, w, res=line_fn)\n{\n')
         self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' %
                      (self.dpi, self.dpi))
 
@@ -594,8 +695,9 @@ class OpenSCAD(inkex.Effect):
         if self.options.autoheight == 'true':
             object_merge_auto_values(auto, node)
 
-        call_item = 'translate ([0,0,%s]) poly_%s(%s);\n' % (
-            auto['raise'], id, auto['height'])
+        call_item = 'translate ([0,0,%s]) poly_%s(%s, min(%s, %s));\n' % (
+            auto['raise'], id, auto['height'], 
+            'min_line_width', stroke_width_mm)
 
         if auto['neg']:
             self.call_list_neg.append(call_item)
@@ -1061,6 +1163,10 @@ class OpenSCAD(inkex.Effect):
 // keep the resulting .stl file manifold.
 fudge = 0.1;
 ''')
+            # writeout users parameters
+            self.f.write( 'height = %s;\n' % ( self.options.height ) )
+            self.f.write( 'min_line_width = %s;\n' % ( self.options.min_line_width ) )
+            self.f.write( 'line_fn = %d;\n\n' % ( self.options.line_fn ) )
 
             for key in self.paths:
                 self.f.write('\n')
@@ -1084,7 +1190,7 @@ fudge = 0.1;
             self.f.write('    }\n  }\n')
 
             # The module that calls all the other ones.
-            self.f.write('}\n\n%s(%s);\n' % (name, self.options.height))
+            self.f.write('}\n\n%s(height);\n' % (name))
             self.f.close()
 
         except IOError as e:

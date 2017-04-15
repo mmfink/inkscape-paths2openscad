@@ -14,10 +14,7 @@
   <page name="splash" _gui-text="Paths to OpenSCAD">
     <param name="fname" type="string" _gui-text="Output file">~/inkscape.scad</param>
     <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height (mm)">5.0</param>
-    <_param name="height_help" type="description">Specify how high in millimeters to extrude the polygons.</_param>
-
-    <param name="smoothness" type="float" min="0.0001" max="5" _gui-text="Smoothing">0.2</param>
-    <_param name="smoothness_help" type="description">Define how smoothly to render curves. Use smaller values for smoother curves.
+    <_param name="height_help" type="description">Standard 3D extrude height (when Auto Height is unused)
     </_param>
 
     <param name="autoheight" type="boolean" _gui-text="Auto Height">false</param>
@@ -39,9 +36,29 @@
     </_param>
 
   </page>
+  <page name="tuning" _gui-text="Fine Tuning">
+    <_param name="tuning" type="description" xml:space="preserve">
+    </_param>
+    <param name="smoothness" type="float" min="0.0001" max="5" _gui-text="Smoothing">0.2</param>
+    <_param name="smoothness_help" type="description">Used when rendering curves. Smaller values are smoother.
+    </_param>
+    <param name="min_line_width" type="float" min="0.1" max="10" _gui-text="Minimum line width [mm]">1.0</param>
+    <param name="line_fn" type="optiongroup" appearance="minimal"  _gui-text="Line width precision">
+      <option value="4">Rough (fast)</option>
+      <option value="8">Medium (slow)</option>
+      <option value="16">Fine (very slow)</option>
+    </param>
+    <_param name="line_width_help" type="description">Minimum Line width and precision for outline mode. Lines that are not a closed loop and objects no fill are rendered in outline mode.
+    </_param>
+    <param name="force_line" type="boolean" _gui-text="Force outline mode">False</param>
+    <_param name="force_line_help" type="description">Force outline mode for all objects. Ignore fill.
+When outline mode is not appliend, the filled surface of a polygon is extruded as a 3D object without adding any line width.
+    </_param>
+
+
+  </page>
   <page name="autoheight" _gui-text="Auto Height">
-    <_param name="autoheight" type="description" xml:space="preserve">
-The auto height option sets the extruded height for
+    <_param name="autoheight" type="description" xml:space="preserve">The auto height option sets the extruded height for
 a specific polygon based on its description or ID.
 
 If the polygon's ID is in either name_XXX_mm or name_XXXmm
@@ -52,9 +69,9 @@ Note that all whitespace or comma are saved as '_' in ID.
 If the height is prefixed with a letter 'a', the 
 object is anti-matter, that is, it is cut away (subtracted)
 from all normal objects.
-
-Syntax for the polygon's description field:
-height: XXX mm
+    </_param>
+    <_param name="autoheight_2" type="description" appearance="header">Syntax for the polygon's description field</_param>
+    <_param name="autoheight_3" type="description" xml:space="preserve">height: XXX mm
   where XXX is any decimal number (optionally prefixed 
   with a letter 'a' for anti-matter) then the height 
   is set to XXX millimeters.
@@ -65,8 +82,7 @@ raise: XXX mm
 
 Note that the description has preference over ID.
 
-Otherwise, the height parameter is used.
-   </_param>
+Otherwise, the height parameter is used.</_param>
   </page>
   <page name="info" _gui-text="About...">
     <_param name="aboutpage" type="description" xml:space="preserve">
@@ -88,7 +104,7 @@ to millimeters using the SVG Standard's
 definition of 90 pixels = 1 inch -- since
 inkscape 0.92: 96 pixels = 1 inch.
 
-v0.13
+v0.15
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
