@@ -20,20 +20,30 @@
 #   Updated by Josef Skladanka to automatically set extruded heights
 #
 # 2017-03-11, juergen@fabmail.org
-#   0.12        parse svg width="400mm" correctly. Came out downscaled by 3...
+#   0.12 parse svg width="400mm" correctly. Came out downscaled by 3...
+#
 # 2017-04-08, juergen@fabmail.org
-#   0.13        allow letter 'a' prefix on height values for anti-matter.
-#               All anti-matter objects are subtracted from all normal objects.
-#               raise: Offset along Z axis, to make cut-outs and balconies.
-#               Refactored object_merge_auto_values() from convertPath().
-#               Inheriting auto values from enclosing groups.
+#   0.13 allow letter 'a' prefix on height values for anti-matter.
+#        All anti-matter objects are subtracted from all normal objects.
+#        raise: Offset along Z axis, to make cut-outs and balconies.
+#        Refactored object_merge_auto_values() from convertPath().
+#        Inheriting auto values from enclosing groups.
+#
 # 2017-04-10, juergen@fabmail.org
-#   0.14        Started merging V7 outline mode by Neon22.
+#   0.14 Started merging V7 outline mode by Neon22.
+#        (http://www.thingiverse.com/thing:1065500)
+#        Toplevel object from http://www.thingiverse.com/thing:1286041
+#        is already included.
+#
 # 2017-04-16, juergen@fabmail.org
-#   0.15        Fixed https://github.com/fablabnbg/inkscape-paths2openscad/issues/1#issuecomment-294257592
-#               Line width of V7 code became a minimum line width, 
-#               rendering is now based on stroke-width 
-#               Refactored LengthWithUnit() from getLength()
+#   0.15 Fixed https://github.com/fablabnbg/inkscape-paths2openscad/
+#        issues/1#issuecomment-294257592
+#        Line width of V7 code became a minimum line width,
+#        rendering is now based on stroke-width
+#        Refactored LengthWithUnit() from getLength()
+#        Finished merge with v7 code.
+#        Subpath in subpath are now handled very nicely.
+#        Added msg_extrude_by_hull_and_paths() outline mode with nested paths.
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 # CAUTION: indentation and whitespace issues due to pep8 compatibility.
@@ -107,6 +117,7 @@ def parseLengthWithUnits(str, default_unit='px'):
         return None, None
 
     return v, u
+
 
 def pointInBBox(pt, bbox):
     '''
@@ -265,17 +276,6 @@ def subdivideCubicPath(sp, flat, i=1):
         sp[i:1] = [p]
 
 
-def closed_p(path):
-    """ path[0] is the path to check """
-    result = False
-    thepath = path[0]
-    if isinstance(thepath[0][0], list):
-        result = True
-    if (thepath[0][0] == thepath[-1][0]) and (thepath[0][1] == thepath[-1][1]):
-        result = True
-    return result
-
-
 def msg_linear_extrude(id, prefix):
     msg = '    linear_extrude(height=h)\n' + \
           '      polygon(%s_%d_points);\n' % (id, prefix)
@@ -296,6 +296,21 @@ def msg_extrude_by_hull(id, prefix):
           '          cylinder(h=h, r=w/2, $fn=res);\n' + \
           '        translate(%s_%d_points[t + 1]) \n' % (id, prefix) + \
           '          cylinder(h=h, r=w/2, $fn=res);\n' + \
+          '      }\n' + \
+          '    }\n'
+    return msg
+
+
+def msg_extrude_by_hull_and_paths(id, prefix):
+    msg = '    for (p = [0: len(%s_%d_paths)-1]) {\n' % (id, prefix) + \
+          '      pp = %s_%d_paths[p];\n' % (id, prefix) + \
+          '      for (t = [0: len(pp)-2]) {\n' + \
+          '        hull() {\n' + \
+          '          translate(%s_%d_points[pp[t]])\n' % (id, prefix) + \
+          '            cylinder(h=h, r=w/2, $fn=res);\n' + \
+          '          translate(%s_%d_points[pp[t+1]])\n' % (id, prefix) + \
+          '            cylinder(h=h, r=w/2, $fn=res);\n' + \
+          '        }\n' + \
           '      }\n' + \
           '    }\n'
     return msg
@@ -326,9 +341,10 @@ class OpenSCAD(inkex.Effect):
             default=float(1), action='store',
             help='Line width for non closed curves (mm)')
 
-        self.OptionParser.add_option("-n",'--line_fn', dest='line_fn',
-            type='int', default=int( 4 ), action='store',
-            help='Line width precision ($fn when constructing hull)' )
+        self.OptionParser.add_option(
+            "-n", '--line_fn', dest='line_fn', type='int',
+            default=int(4), action='store',
+            help='Line width precision ($fn when constructing hull)')
 
         self.OptionParser.add_option(
             "--force_line", action="store", type="inkbool",
@@ -356,7 +372,7 @@ class OpenSCAD(inkex.Effect):
         self.OptionParser.add_option(
             '--stlpost', dest='stlpost', type='string', default='false',
             action='store', help='Start e.g. a slicer. This implies the ' +
-            '--scad2stl option. ( see --stlpostcmd)')
+            '--scad2stl option. ( see --stlpostcmd )')
         self.OptionParser.add_option(
             '--stlpostcmd', dest='stlpostcmd', type='string',
             default=INX_STL_POSTPROCESSING, action='store',
@@ -378,7 +394,7 @@ class OpenSCAD(inkex.Effect):
 
         # Output file handling
         self.call_list = []
-        self.call_list_neg = []		# anti-matter objects (holes via difference)
+        self.call_list_neg = []        # anti-matter (holes via difference)
         self.pathid = int(0)
 
         # Output file
@@ -441,7 +457,6 @@ class OpenSCAD(inkex.Effect):
             # Unsupported units
             return None
 
-
     def getDocProps(self):
 
         '''
@@ -463,22 +478,22 @@ class OpenSCAD(inkex.Effect):
         # was ever saved before. If not, both elements are missing.
         #
         import lxml.etree
-        inkex.errormsg( lxml.etree.tostring(self.document.getroot()) )
+        # inkex.errormsg(lxml.etree.tostring(self.document.getroot()))
         if inkscape_version:
             '''
             inkscape:version="0.91 r"
             inkscape:version="0.92.0 ..."
            See also https://github.com/fablabnbg/paths2openscad/issues/1
             '''
-            inkex.errormsg("inkscape:version="+inkscape_version)
+            # inkex.errormsg("inkscape:version="+inkscape_version)
             m = re.match(r"(\d+)\.(\d+)", inkscape_version)
             if m:
                 if int(m.group(1)) > 0 or int(m.group(2)) > 91:
                     self.dpi = 96                # 96dpi since inkscape 0.92
-                    inkex.errormsg("switching to 96 dpi")
+                    # inkex.errormsg("switching to 96 dpi")
 
         # BUGFIX https://github.com/fablabnbg/inkscape-paths2openscad/issues/1
-        # get height and width after dpi. This is needed in case of e.g. mm units.
+        # get height and width after dpi. This is needed for e.g. mm units.
         self.docHeight = self.getLength('height', DEFAULT_HEIGHT)
         self.docWidth = self.getLength('width', DEFAULT_WIDTH)
 
@@ -560,9 +575,10 @@ class OpenSCAD(inkex.Effect):
             # vertex, but our polygon in polygon algorithm may
             n = len(sp)
             last_point = sp[n - 1][1]
-            if first_point[0] == last_point[0] and \
-                    first_point[1] == last_point[1]:
-                n = n - 1
+            # FIXME: outline mode needs the last point, we cannot do this here.
+            # if first_point[0] == last_point[0] and \
+            #         first_point[1] == last_point[1]:
+            #     n = n - 1
 
             # Traverse each point of the subpath
             for csp in sp[1:n]:
@@ -609,7 +625,7 @@ class OpenSCAD(inkex.Effect):
             (key, val) = elem.strip().split(':')
             ret[key] = val
         return ret
- 
+
     def convertPath(self, node):
 
         def object_merge_auto_values(auto, node):
@@ -638,6 +654,7 @@ class OpenSCAD(inkex.Effect):
             if auto['height'][0] in ('a', 'A'):
                 auto['neg'] = True
                 auto['height'] = auto['height'][1:]
+            # END object_merge_auto_values
 
         path = self.paths[node]
         if (path is None) or (len(path) == 0):
@@ -677,12 +694,68 @@ class OpenSCAD(inkex.Effect):
         stroke_width_mm = self.LengthWithUnit(stroke_width, default_unit='mm')
         stroke_width_mm = str(stroke_width_mm * 25.4 / self.dpi)  # px to mm
         fill_color = style.get('fill', '#FFF')
-        if (fill_color == 'none') or self.options.force_line:
+        if (fill_color == 'none'):
             filled = False
         else:
             filled = True
-        inkex.errormsg('filled='+str(filled))
+        if (filled is False and style.get('stroke', 'none') == 'none'):
+            inkex.errormsg("WARNING: " + rawid + " has fill:none and " +
+                           "stroke:none, object ignored.")
+            return
+
+        # inkex.errormsg('filled='+str(filled))
         # inkex.errormsg(id+': style='+str(style))
+
+        # #### global data for msg_*() functions. ####
+        # fold subpaths into a single list of points and index paths.
+        prefix = 0
+        for i in range(0, len(path)):
+            # Skip this subpath if it is contained by another one
+            if len(contained_by[i]) != 0:
+                continue
+            subpath = path[i][0]
+            bbox = path[i][1]
+
+            #
+            polypoints = id + '_' + str(prefix) + '_points = ['
+            polypaths = id + '_' + str(prefix) + '_paths = [['
+            if len(contains[i]) == 0:
+                # This subpath does not contain any subpaths
+                for point in subpath:
+                    polypoints += '[%f,%f],' % ((point[0] - self.cx),
+                                                (point[1] - self.cy))
+                polypoints = polypoints[:-1]
+                polypoints += '];\n'
+                self.f.write(polypoints)
+                prefix += 1
+            else:
+                # This subpath contains other subpaths
+                # collect all points into poly
+                # also collect the indices into polypaths
+                for point in subpath:
+                    polypoints += '[%f,%f],' % ((point[0] - self.cx),
+                                                (point[1] - self.cy))
+                count = len(subpath)
+                for k in range(0, count):
+                    polypaths += '%d,' % (k)
+                polypaths = polypaths[:-1] + '],\n\t\t\t\t['
+                # The nested paths
+                for j in contains[i]:
+                    for point in path[j][0]:
+                        polypoints += '[%f,%f],' % ((point[0] - self.cx),
+                                                    (point[1] - self.cy))
+                    for k in range(count, count + len(path[j][0])):
+                        polypaths += '%d,' % k
+                    count += len(path[j][0])
+                    polypaths = polypaths[:-1] + '],\n\t\t\t\t['
+                polypoints = polypoints[:-1]
+                polypoints += '];\n'
+                polypaths = polypaths[:-7] + '];\n'
+                # write the polys and paths
+                self.f.write(polypoints)
+                self.f.write(polypaths)
+                prefix += 1
+        # #### end global data for msg_*() functions. ####
 
         self.f.write('module poly_' + id + '(h, w, res=line_fn)\n{\n')
         self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' %
@@ -695,15 +768,15 @@ class OpenSCAD(inkex.Effect):
         if self.options.autoheight == 'true':
             object_merge_auto_values(auto, node)
 
-        call_item = 'translate ([0,0,%s]) poly_%s(%s, min(%s, %s));\n' % (
-            auto['raise'], id, auto['height'], 
-            'min_line_width', stroke_width_mm)
+        call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s));\n' % (
+            auto['raise'], id, auto['height'], stroke_width_mm)
 
         if auto['neg']:
             self.call_list_neg.append(call_item)
         else:
             self.call_list.append(call_item)
 
+        prefix = 0
         for i in range(0, len(path)):
 
             # Skip this subpath if it is contained by another one
@@ -713,54 +786,26 @@ class OpenSCAD(inkex.Effect):
             subpath = path[i][0]
             bbox = path[i][1]
 
-            if len(contains[i]) == 0:
+            if filled and not self.options.force_line:
 
-                # This subpath does not contain any subpaths
-                poly = \
-                    '    linear_extrude(height=h)\n' + \
-                    '      polygon(['
+                if len(contains[i]) == 0:
+                    # This subpath does not contain any subpaths
+                    poly = msg_linear_extrude(id, prefix)
+                else:
+                    # This subpath contains other subpaths
+                    poly = msg_linear_extrude_by_paths(id, prefix)
 
-                for point in subpath:
-                    poly += '[%f,%f],' % (
-                        (point[0] - self.cx), (point[1] - self.cy))
+            else:   # filled == False -> outline mode
 
-                poly = poly[:-1]
-                poly += ']);\n'
-                self.f.write(poly)
+                if len(contains[i]) == 0:
+                    # This subpath does not contain any subpaths
+                    poly = msg_extrude_by_hull(id, prefix)
+                else:
+                    # This subpath contains other subpaths
+                    poly = msg_extrude_by_hull_and_paths(id, prefix)
 
-            else:
-
-                # This subpath contains other subpaths
-                poly = \
-                    '    difference()\n' + \
-                    '    {\n' + \
-                    '       linear_extrude(height=h)\n' + \
-                    '         polygon(['
-
-                for point in subpath:
-                    poly += '[%f,%f],' % (
-                        (point[0] - self.cx), (point[1] - self.cy))
-
-                poly = poly[:-1]
-                poly += ']);\n'
-                self.f.write(poly)
-
-                for j in contains[i]:
-
-                    poly = \
-                        '       translate([0, 0, -fudge])\n' + \
-                        '         linear_extrude(height=h+2*fudge)\n' + \
-                        '           polygon(['
-
-                    for point in path[j][0]:
-                        poly += '[%f,%f],' % (
-                            (point[0] - self.cx), (point[1] - self.cy))
-
-                    poly = poly[:-1]
-                    poly += ']);\n'
-                    self.f.write(poly)
-
-                self.f.write('    }\n')
+            self.f.write(poly)
+            prefix += 1
 
         # End the module
         self.f.write('  }\n}\n')
@@ -1164,9 +1209,12 @@ class OpenSCAD(inkex.Effect):
 fudge = 0.1;
 ''')
             # writeout users parameters
-            self.f.write( 'height = %s;\n' % ( self.options.height ) )
-            self.f.write( 'min_line_width = %s;\n' % ( self.options.min_line_width ) )
-            self.f.write( 'line_fn = %d;\n\n' % ( self.options.line_fn ) )
+            self.f.write('height = %s;\n' % (self.options.height))
+            self.f.write('line_fn = %d;\n' % (self.options.line_fn))
+            self.f.write('min_line_width = %s;\n' %
+                         (self.options.min_line_width))
+            self.f.write('function min_line_mm(w) = ' +
+                         'max(min_line_width, w)*%g/25.4;\n\n' % self.dpi)
 
             for key in self.paths:
                 self.f.write('\n')
