@@ -11,3 +11,6 @@ SVG paths to OpenSCAD converter. Copied from Thingiverse things [24808](http://w
 
 See also: Thingiverse things [1065500](http://www.thingiverse.com/thing:1065500)  Inkscape to OpenSCAD converter v7 by Neon22.
 
+Example for a scriptable call (untested)
+
+inkscape --verb=EditSelectAll --verb=SelectionCombine --verb=EditDeselect --verb=command.extrude.openscad_auto.noprefs --verb=EditUndo --verb=EditUndo --verb=FileQuit /full/path/to/file.svg
