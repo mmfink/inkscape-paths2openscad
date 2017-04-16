@@ -3,7 +3,11 @@ paths2openscad
 
 [![Build Status](https://travis-ci.org/fablabnbg/inkscape-paths2openscad.svg?branch=master)](https://travis-ci.org/fablabnbg/inkscape-paths2openscad)
 
-![paths2openscad](https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png)
+![bannerpic](https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png)
+img[alt="bannerpic"] { 
+  max-width:  200px; 
+  display: block;
+}
 
 
 
