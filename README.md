@@ -3,7 +3,7 @@ paths2openscad
 
 [![Build Status](https://travis-ci.org/fablabnbg/inkscape-paths2openscad.svg?branch=master)](https://travis-ci.org/fablabnbg/inkscape-paths2openscad)
 
-<img src="https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png" width="200" />
+<img align="right" src="https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png" width="200" />
 
 Download and install from https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
