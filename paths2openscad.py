@@ -777,8 +777,10 @@ class OpenSCAD(inkex.Effect):
         if self.options.autoheight == 'true':
             object_merge_auto_values(auto, node)
 
-        call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
-            auto['raise'], id, auto['height'], stroke_width_mm, auto['scale'])
+        call_item = \
+            'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
+                auto['raise'], id, auto['height'],
+                stroke_width_mm, auto['scale'])
 
         if auto['neg']:
             self.call_list_neg.append(call_item)
