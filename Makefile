@@ -40,6 +40,7 @@ clean-virtualenv:
 .PHONY: dist
 dist:
 	cd distribute; sh ./distribute.sh
+	@echo "Now upload to https://github.com/fablabnbg/inkscape-paths2openscad/releases/"
 
 #install is used by dist.
 install:
