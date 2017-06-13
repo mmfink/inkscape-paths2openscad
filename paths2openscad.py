@@ -45,6 +45,9 @@
 #        Subpath in subpath are now handled very nicely.
 #        Added msg_extrude_by_hull_and_paths() outline mode with nested paths.
 #
+# 2017-06-12, juergen@fabmail.org
+#   0.16 Feature added: scale: XXX to taper the object while extruding.
+#
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 # CAUTION: indentation and whitespace issues due to pep8 compatibility.
 
@@ -81,6 +84,9 @@ DEFAULT_HEIGHT = 100
 RE_AUTO_HEIGHT_ID = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
 RE_AUTO_HEIGHT_DESC = re.compile(
     r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
+    re.MULTILINE)
+RE_AUTO_SCALE_DESC = re.compile(
+    r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?) ?%$",
     re.MULTILINE)
 RE_AUTO_RAISE_DESC = re.compile(
     r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
@@ -277,13 +283,13 @@ def subdivideCubicPath(sp, flat, i=1):
 
 
 def msg_linear_extrude(id, prefix):
-    msg = '    linear_extrude(height=h)\n' + \
+    msg = '    linear_extrude(height=h, scale=0.01*s)\n' + \
           '      polygon(%s_%d_points);\n' % (id, prefix)
     return msg
 
 
 def msg_linear_extrude_by_paths(id, prefix):
-    msg = '    linear_extrude(height=h)\n' + \
+    msg = '    linear_extrude(height=h, scale=0.01*s)\n' + \
           '      polygon(%s_%d_points, %s_%d_paths);\n' % \
           (id, prefix, id, prefix)
     return msg
@@ -648,6 +654,9 @@ class OpenSCAD(inkex.Effect):
                     height = RE_AUTO_HEIGHT_DESC.findall(desc_node.text)
                     if height:
                         auto['height'] = height[-1]
+                    zscale = RE_AUTO_SCALE_DESC.findall(desc_node.text)
+                    if zscale:
+                        auto['scale'] = zscale[-1]
                     zraise = RE_AUTO_RAISE_DESC.findall(desc_node.text)
                     if zraise:
                         auto['raise'] = zraise[-1]
@@ -757,19 +766,19 @@ class OpenSCAD(inkex.Effect):
                 prefix += 1
         # #### end global data for msg_*() functions. ####
 
-        self.f.write('module poly_' + id + '(h, w, res=line_fn)\n{\n')
+        self.f.write('module poly_' + id + '(h, w, s, res=line_fn)\n{\n')
         self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' %
                      (self.dpi, self.dpi))
 
         # And add the call to the call list
         # Height is set by the overall module parameter
         # unless an auto-height is found.
-        auto = {'height': 'h', 'raise': '0', 'neg': False}
+        auto = {'height': 'h', 'raise': '0', 'scale': 100.0, 'neg': False}
         if self.options.autoheight == 'true':
             object_merge_auto_values(auto, node)
 
-        call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s));\n' % (
-            auto['raise'], id, auto['height'], stroke_width_mm)
+        call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
+            auto['raise'], id, auto['height'], stroke_width_mm, auto['scale'])
 
         if auto['neg']:
             self.call_list_neg.append(call_item)

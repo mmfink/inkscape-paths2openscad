@@ -80,6 +80,10 @@ from all normal objects.
 raise: XXX mm
   Move the object upwards to create a hole (with 'a') or balcony.
 
+scale: 90 %
+  Taper the object along its height. The top surface is scaled to this value, 
+  while the bottom surface remains as drawn.
+
 Note that the description has preference over ID.
 
 Otherwise, the height parameter is used.</_param>
@@ -104,7 +108,7 @@ to millimeters using the SVG Standard's
 definition of 90 pixels = 1 inch -- since
 inkscape 0.92: 96 pixels = 1 inch.
 
-v0.15
+v0.16
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
