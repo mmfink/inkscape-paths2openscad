@@ -290,14 +290,18 @@ def subdivideCubicPath(sp, flat, i=1):
 
 
 def msg_linear_extrude(id, prefix):
-    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
-          '      translate (-%s_%d_center) polygon(%s_%d_points);\n'
+    msg = '    translate (%s_%d_center)' + \
+          '      linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '        translate (-%s_%d_center)' + \
+          '          polygon(%s_%d_points);\n'
     return msg % (id, prefix, id, prefix, id, prefix)
 
 
 def msg_linear_extrude_by_paths(id, prefix):
-    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
-          '      translate (-%s_%d_center) polygon(%s_%d_points, %s_%d_paths);\n'
+    msg = '    translate (%s_%d_center)' + \
+          '      linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '        translate (-%s_%d_center)' + \
+          '          polygon(%s_%d_points, %s_%d_paths);\n'
     return msg % (id, prefix, id, prefix, id, prefix, id, prefix)
 
 
@@ -369,7 +373,8 @@ class OpenSCAD(inkex.Effect):
 
         self.OptionParser.add_option(
             '--parsedesc', dest='parsedesc', type='string', default='true',
-            action='store', help='Parse height and other parameters from object descriptions')
+            action='store',
+            help='Parse height and other parameters from object descriptions')
 
         self.OptionParser.add_option(
             '--scad2stl', dest='scad2stl', type='string', default='false',
@@ -744,7 +749,6 @@ class OpenSCAD(inkex.Effect):
                 polypoints += '];\n'
                 self.f.write(polycenter + ";\n")
                 self.f.write(polypoints)
-                self.f.write("// bbox: " + str(bbox) + " self.cx,cy = [%f,%f]\n" % (self.cx, self.cy))
                 prefix += 1
             else:
                 # This subpath contains other subpaths
