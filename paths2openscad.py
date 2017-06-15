@@ -26,8 +26,8 @@
 #   0.13 allow letter 'a' prefix on height values for anti-matter.
 #        All anti-matter objects are subtracted from all normal objects.
 #        raise: Offset along Z axis, to make cut-outs and balconies.
-#        Refactored object_merge_auto_values() from convertPath().
-#        Inheriting auto values from enclosing groups.
+#        Refactored object_merge_extrusion_values() from convertPath().
+#        Inheriting extrusion values from enclosing groups.
 #
 # 2017-04-10, juergen@fabmail.org
 #   0.14 Started merging V7 outline mode by Neon22.
@@ -47,6 +47,13 @@
 #
 # 2017-06-12, juergen@fabmail.org
 #   0.16 Feature added: scale: XXX to taper the object while extruding.
+
+# 2017-06-15, juergen@fabmail.org
+#   0.17 scale is now centered on each path. and supports an optional second
+#        value for explicit Y scaling. Renamed the autoheight command line
+#        option to 'parsedesc' with default true. Renamed dict auto to
+#        extrusion. Rephrased all prose to refer to extrusion syntax rather
+#        than auto height.
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 # CAUTION: indentation and whitespace issues due to pep8 compatibility.
@@ -86,7 +93,7 @@ RE_AUTO_HEIGHT_DESC = re.compile(
     r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
     re.MULTILINE)
 RE_AUTO_SCALE_DESC = re.compile(
-    r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?) ?%$",
+    r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$",
     re.MULTILINE)
 RE_AUTO_RAISE_DESC = re.compile(
     r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
@@ -283,16 +290,15 @@ def subdivideCubicPath(sp, flat, i=1):
 
 
 def msg_linear_extrude(id, prefix):
-    msg = '    linear_extrude(height=h, scale=0.01*s)\n' + \
-          '      polygon(%s_%d_points);\n' % (id, prefix)
-    return msg
+    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '      translate (-%s_%d_center) polygon(%s_%d_points);\n'
+    return msg % (id, prefix, id, prefix, id, prefix)
 
 
 def msg_linear_extrude_by_paths(id, prefix):
-    msg = '    linear_extrude(height=h, scale=0.01*s)\n' + \
-          '      polygon(%s_%d_points, %s_%d_paths);\n' % \
-          (id, prefix, id, prefix)
-    return msg
+    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '      translate (-%s_%d_center) polygon(%s_%d_points, %s_%d_paths);\n'
+    return msg % (id, prefix, id, prefix, id, prefix, id, prefix)
 
 
 def msg_extrude_by_hull(id, prefix):
@@ -362,8 +368,8 @@ class OpenSCAD(inkex.Effect):
             action='store', help='Curve smoothing (less for more)')
 
         self.OptionParser.add_option(
-            '--autoheight', dest='autoheight', type='string', default='false',
-            action='store', help='Set heights automatically')
+            '--parsedesc', dest='parsedesc', type='string', default='true',
+            action='store', help='Parse height and other parameters from object descriptions')
 
         self.OptionParser.add_option(
             '--scad2stl', dest='scad2stl', type='string', default='false',
@@ -576,15 +582,7 @@ class OpenSCAD(inkex.Effect):
             sp_ymin = first_point[1]
             sp_ymax = first_point[1]
 
-            # See if the first and last points are identical
-            # OpenSCAD doesn't mind if we duplicate the first and last
-            # vertex, but our polygon in polygon algorithm may
             n = len(sp)
-            last_point = sp[n - 1][1]
-            # FIXME: outline mode needs the last point, we cannot do this here.
-            # if first_point[0] == last_point[0] and \
-            #         first_point[1] == last_point[1]:
-            #     n = n - 1
 
             # Traverse each point of the subpath
             for csp in sp[1:n]:
@@ -634,36 +632,41 @@ class OpenSCAD(inkex.Effect):
 
     def convertPath(self, node):
 
-        def object_merge_auto_values(auto, node):
-
-            # recurse into parents, to inherit values from enclosing groups
+        def object_merge_extrusion_values(extrusion, node):
+            """ Parser for description and ID fields for extrusion parameters.
+                This recurse into parents, to inherit values from enclosing
+                groups.
+            """
             p = node.getparent()
             if p is not None and p.tag in (inkex.addNS('g', 'svg'), 'g'):
-                object_merge_auto_values(auto, p)
+                object_merge_extrusion_values(extrusion, p)
 
             # let the node override inherited values
             rawid = node.get('id', '')
             if rawid is not None:
                 height = RE_AUTO_HEIGHT_ID.findall(rawid)
                 if height:
-                    auto['height'] = height[-1].replace("_", ".")
+                    extrusion['height'] = height[-1].replace("_", ".")
             # let description contents override id contents.
             for tagname in DESC_TAGS:
                 desc_node = node.find("./%s" % tagname)
                 if desc_node is not None:
                     height = RE_AUTO_HEIGHT_DESC.findall(desc_node.text)
                     if height:
-                        auto['height'] = height[-1]
+                        extrusion['height'] = height[-1]
                     zscale = RE_AUTO_SCALE_DESC.findall(desc_node.text)
                     if zscale:
-                        auto['scale'] = zscale[-1]
+                        if ',' in zscale[-1]:
+                            extrusion['scale'] = '[' + zscale[-1] + ']'
+                        else:
+                            extrusion['scale'] = zscale[-1]
                     zraise = RE_AUTO_RAISE_DESC.findall(desc_node.text)
                     if zraise:
-                        auto['raise'] = zraise[-1]
-            if auto['height'][0] in ('a', 'A'):
-                auto['neg'] = True
-                auto['height'] = auto['height'][1:]
-            # END object_merge_auto_values
+                        extrusion['raise'] = zraise[-1]
+            if extrusion['height'][0] in ('a', 'A'):
+                extrusion['neg'] = True
+                extrusion['height'] = extrusion['height'][1:]
+            # END object_merge_extrusion_values
 
         path = self.paths[node]
         if (path is None) or (len(path) == 0):
@@ -723,10 +726,14 @@ class OpenSCAD(inkex.Effect):
             if len(contained_by[i]) != 0:
                 continue
             subpath = path[i][0]
-            bbox = path[i][1]
+            bbox = path[i][1]   # [xmin, xmax, ymin, ymax]
 
             #
+            polycenter = id + '_' + str(prefix) + '_center = [%f,%f]' % \
+                ((bbox[0]+bbox[1])*.5-self.cx,
+                 (bbox[2]+bbox[3])*.5-self.cy)
             polypoints = id + '_' + str(prefix) + '_points = ['
+            # polypaths = [[0,1,2], [3,4,5]]   # this path is two triangle
             polypaths = id + '_' + str(prefix) + '_paths = [['
             if len(contains[i]) == 0:
                 # This subpath does not contain any subpaths
@@ -735,11 +742,13 @@ class OpenSCAD(inkex.Effect):
                                                 (point[1] - self.cy))
                 polypoints = polypoints[:-1]
                 polypoints += '];\n'
+                self.f.write(polycenter + ";\n")
                 self.f.write(polypoints)
+                self.f.write("// bbox: " + str(bbox) + " self.cx,cy = [%f,%f]\n" % (self.cx, self.cy))
                 prefix += 1
             else:
                 # This subpath contains other subpaths
-                # collect all points into poly
+                # collect all points into polypoints
                 # also collect the indices into polypaths
                 for point in subpath:
                     polypoints += '[%f,%f],' % ((point[0] - self.cx),
@@ -761,6 +770,7 @@ class OpenSCAD(inkex.Effect):
                 polypoints += '];\n'
                 polypaths = polypaths[:-7] + '];\n'
                 # write the polys and paths
+                self.f.write(polycenter + ";\n")
                 self.f.write(polypoints)
                 self.f.write(polypaths)
                 prefix += 1
@@ -772,17 +782,17 @@ class OpenSCAD(inkex.Effect):
 
         # And add the call to the call list
         # Height is set by the overall module parameter
-        # unless an auto-height is found.
-        auto = {'height': 'h', 'raise': '0', 'scale': 100.0, 'neg': False}
-        if self.options.autoheight == 'true':
-            object_merge_auto_values(auto, node)
+        # unless an extrusion height is parsed from the description or ID.
+        extrusion = {'height': 'h', 'raise': '0', 'scale': 100.0, 'neg': False}
+        if self.options.parsedesc == 'true':
+            object_merge_extrusion_values(extrusion, node)
 
         call_item = \
             'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
-                auto['raise'], id, auto['height'],
-                stroke_width_mm, auto['scale'])
+                extrusion['raise'], id, extrusion['height'],
+                stroke_width_mm, extrusion['scale'])
 
-        if auto['neg']:
+        if extrusion['neg']:
             self.call_list_neg.append(call_item)
         else:
             self.call_list.append(call_item)

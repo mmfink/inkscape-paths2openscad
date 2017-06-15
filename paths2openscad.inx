@@ -14,11 +14,11 @@
   <page name="splash" _gui-text="Paths to OpenSCAD">
     <param name="fname" type="string" _gui-text="Output file">~/inkscape.scad</param>
     <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height (mm)">5.0</param>
-    <_param name="height_help" type="description">Standard 3D extrude height (when Auto Height is unused)
-    </_param>
+    <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from description).
+</_param>
 
-    <param name="autoheight" type="boolean" _gui-text="Auto Height">false</param>
-    <_param name="autoheight_help" type="description">Set the extruded height for a specific polygon based on its description or ID. See the Auto Height tab.
+    <param name="parsedesc" type="boolean" _gui-text="Description parsing">false</param>
+    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale for a specific object from its description or ID. See the Extrusion Syntax tab for details.
     </_param>
 
     <param name="scad2stl" type="boolean" _gui-text="Convert to STL">false</param>
@@ -57,36 +57,35 @@ When outline mode is not appliend, the filled surface of a polygon is extruded a
 
 
   </page>
-  <page name="autoheight" _gui-text="Auto Height">
-    <_param name="autoheight" type="description" xml:space="preserve">The auto height option sets the extruded height for
-a specific polygon based on its description or ID.
+  <page name="extrusion" _gui-text="Extrusion Syntax">
+    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters canbe read from an object's description or ID.
 
-If the polygon's ID is in either name_XXX_mm or name_XXXmm
+If an object's ID is in either name_XXX_mm or name_XXXmm
 format, then XXX is translated into height in millimeters.
 Use . or _ as separator for a decimal number.
 Note that all whitespace or comma are saved as '_' in ID.
 
-If the height is prefixed with a letter 'a', the 
-object is anti-matter, that is, it is cut away (subtracted)
+If the height is prefixed with a letter 'a', the
+object is "anti-matter", it is cut away (subtracted)
 from all normal objects.
     </_param>
-    <_param name="autoheight_2" type="description" appearance="header">Syntax for the polygon's description field</_param>
-    <_param name="autoheight_3" type="description" xml:space="preserve">height: XXX mm
-  where XXX is any decimal number (optionally prefixed 
-  with a letter 'a' for anti-matter) then the height 
-  is set to XXX millimeters.
-  Here a . is the separator for the decimal number.
+    <_param name="extrusion_2" type="description" appearance="header">Syntax for an object's description field</_param>
+    <_param name="extrusion_3" type="description" xml:space="preserve">Height: 10 mm        or        Height: a12.3 mm
+  Linear extrusion height of the object. Note that the 
+  height always counts upwards, even for "anti-matter".
 
-raise: XXX mm
-  Move the object upwards to create a hole (with 'a') or balcony.
+Raise: 4.5 mm
+  Move an object upwards to create a balcony (or window).
 
-scale: 90 %
-  Taper the object along its height. The top surface is scaled to this value, 
-  while the bottom surface remains as drawn.
+Scale: 90 %           or           Scale: 90,60 %
+  Taper the object along its height. The top surface is scaled to 
+  this value. An optional second value specifies a different 
+  scaling along the Y axis. Useful for tapering lengthy objects.
 
-Note that the description has preference over ID.
+All parameters can also be specified in enclosing groups.
 
-Otherwise, the height parameter is used.</_param>
+A height can be specified in 3 ways: As a default height, in
+ID fields, or in descriptions. Description takes precedence.</_param>
   </page>
   <page name="info" _gui-text="About...">
     <_param name="aboutpage" type="description" xml:space="preserve">
@@ -108,7 +107,7 @@ to millimeters using the SVG Standard's
 definition of 90 pixels = 1 inch -- since
 inkscape 0.92: 96 pixels = 1 inch.
 
-v0.16
+v0.17
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
