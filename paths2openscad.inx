@@ -17,7 +17,7 @@
     <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from description).
 </_param>
 
-    <param name="parsedesc" type="boolean" _gui-text="Description parsing">false</param>
+    <param name="parsedesc" type="boolean" _gui-text="Description parsing">true</param>
     <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale for a specific object from its description or ID. See the Extrusion Syntax tab for details.
     </_param>
 
