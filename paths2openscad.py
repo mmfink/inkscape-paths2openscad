@@ -123,10 +123,10 @@ def IsProcessRunning(pid):
         # OSX sys_platform.startswith('darwin'):
         # and Linux
         try:
-           os.kill(pid, 0)
-           return True
+            os.kill(pid, 0)
+            return True
         except OSError:
-           return False
+            return False
 
 
 def parseLengthWithUnits(str, default_unit='px'):
@@ -1238,7 +1238,7 @@ fudge = 0.1;
                 except OSError as e:
                     raise OSError("%s failed: errno=%d %s" % (cmd, e.errno, e.strerror))
                 try:
-                    open(pidfile, "w").write(str(proc.pid)+"\n")
+                    open(pidfile, "w").write(str(proc.pid) + "\n")
                 except:
                     pass
 
