@@ -9,13 +9,13 @@
 
 # Written by Daniel C. Newman ( dan dot newman at mtbaldy dot us )
 # 10 June 2012
-
+#
 # 15 June 2012
 #   Updated by Dan Newman to handle a single level of polygon nesting.
 #   This is sufficient to handle most fonts.
 #   If you want to nest two polygons, combine them into a single path
 #   within Inkscape with "Path > Combine Path".
-
+#
 # 15 August 2014
 #   Updated by Josef Skladanka to automatically set extruded heights
 #
@@ -54,9 +54,12 @@
 #        option to 'parsedesc' with default true. Renamed dict auto to
 #        extrusion. Rephrased all prose to refer to extrusion syntax rather
 #        than auto height.
+# 2017-06-18, juergen@fabmail.org
+#   0.18 pep8 relaxed. all hard 80 cols line breaks removed.
+#   Refactored the commands into a separate tab in the inx.
+#   Added 'View in OpenSCAD' feature with pidfile for single instance.
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
-# CAUTION: indentation and whitespace issues due to pep8 compatibility.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -83,26 +86,47 @@ import cspsubdiv
 import bezmisc
 import re
 import string
+import tempfile
 
 DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
 # Parse all these as 56.7 mm height:
 #  "path1234_56_7_mm", "pat1234____57.7mm", "path1234_57.7__mm"
-RE_AUTO_HEIGHT_ID = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
-RE_AUTO_HEIGHT_DESC = re.compile(
-    r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$",
-    re.MULTILINE)
-RE_AUTO_SCALE_DESC = re.compile(
-    r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$",
-    re.MULTILINE)
-RE_AUTO_RAISE_DESC = re.compile(
-    r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$",
-    re.MULTILINE)
+RE_AUTO_HEIGHT_ID   = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
+RE_AUTO_HEIGHT_DESC = re.compile(r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
+RE_AUTO_SCALE_DESC  = re.compile(r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$", re.MULTILINE)
+RE_AUTO_RAISE_DESC  = re.compile(r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
-INX_SCAD2STL = os.getenv('INX_SCAD2STL', "openscad '{SCAD}' -o '{STL}'")
+INX_SCADVIEW           = os.getenv('INX_SCADVIEW',           "openscad '{SCAD}'")
+INX_SCAD2STL           = os.getenv('INX_SCAD2STL',           "openscad '{SCAD}' -o '{STL}'")
 INX_STL_POSTPROCESSING = os.getenv('INX_STL_POSTPROCESSING', "cura '{STL}' &")
+
+
+def IsProcessRunning(pid):
+    '''
+    Windows code from https://stackoverflow.com/questions/7647167/check-if-a-process-is-running-in-python-in-linux-unix
+    '''
+    sys_platform = sys.platform.lower()
+    if sys_platform.startswith('win'):
+        import subprocess
+
+        ps = subprocess.Popen(r'tasklist.exe /NH /FI "PID eq %d"' % (pid), shell=True, stdout=subprocess.PIPE)
+        output = ps.stdout.read()
+        ps.stdout.close()
+        ps.wait()
+        if processId in output:
+            return True
+        return False
+    else:
+        # OSX sys_platform.startswith('darwin'):
+        # and Linux
+        try:
+           os.kill(pid, 0)
+           return True
+        except OSError:
+           return False
 
 
 def parseLengthWithUnits(str, default_unit='px'):
@@ -139,8 +163,7 @@ def pointInBBox(pt, bbox):
     '''
 
     # if ( x < xmin ) or ( x > xmax ) or ( y < ymin ) or ( y > ymax )
-    if (pt[0] < bbox[0]) or (pt[0] > bbox[1]) or \
-            (pt[1] < bbox[2]) or (pt[1] > bbox[3]):
+    if (pt[0] < bbox[0]) or (pt[0] > bbox[1]) or (pt[1] < bbox[2]) or (pt[1] > bbox[3]):
         return False
     else:
         return True
@@ -160,8 +183,7 @@ def bboxInBBox(bbox1, bbox2):
     # if ( xmin1 < xmin2 ) or ( xmax1 > xmax2 ) or
     # ( ymin1 < ymin2 ) or ( ymax1 > ymax2 )
 
-    if (bbox1[0] < bbox2[0]) or (bbox1[1] > bbox2[1]) or \
-            (bbox1[2] < bbox2[2]) or (bbox1[3] > bbox2[3]):
+    if (bbox1[0] < bbox2[0]) or (bbox1[1] > bbox2[1]) or (bbox1[2] < bbox2[2]) or (bbox1[3] > bbox2[3]):
         return False
     else:
         return True
@@ -196,8 +218,7 @@ def pointInPoly(p, poly, bbox=None):
         if i != 0:
             p1 = poly[i - 1]
             p2 = poly[i]
-        if (y == p1[1]) and (p1[1] == p2[1]) and \
-                (x > min(p1[0], p2[0])) and (x < max(p1[0], p2[0])):
+        if (y == p1[1]) and (p1[1] == p2[1]) and (x > min(p1[0], p2[0])) and (x < max(p1[0], p2[0])):
             return True
 
     n = len(poly)
@@ -210,8 +231,7 @@ def pointInPoly(p, poly, bbox=None):
             if y <= max(p1_y, p2_y):
                 if x <= max(p1_x, p2_x):
                     if p1_y != p2_y:
-                        intersect = p1_x + (y - p1_y) * (p2_x - p1_x) / \
-                                           (p2_y - p1_y)
+                        intersect = p1_x + (y - p1_y) * (p2_x - p1_x) / (p2_y - p1_y)
                         if x <= intersect:
                             inside = not inside
                     else:
@@ -290,18 +310,14 @@ def subdivideCubicPath(sp, flat, i=1):
 
 
 def msg_linear_extrude(id, prefix):
-    msg = '    translate (%s_%d_center)' + \
-          '      linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
-          '        translate (-%s_%d_center)' + \
-          '          polygon(%s_%d_points);\n'
+    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '      translate (-%s_%d_center) polygon(%s_%d_points);\n'
     return msg % (id, prefix, id, prefix, id, prefix)
 
 
 def msg_linear_extrude_by_paths(id, prefix):
-    msg = '    translate (%s_%d_center)' + \
-          '      linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
-          '        translate (-%s_%d_center)' + \
-          '          polygon(%s_%d_points, %s_%d_paths);\n'
+    msg = '    translate (%s_%d_center) linear_extrude(height=h, convexity=10, scale=0.01*s)\n' + \
+          '      translate (-%s_%d_center) polygon(%s_%d_points, %s_%d_paths);\n'
     return msg % (id, prefix, id, prefix, id, prefix, id, prefix)
 
 
@@ -344,61 +360,57 @@ class OpenSCAD(inkex.Effect):
             help="The active tab when Apply was pressed")
 
         self.OptionParser.add_option(
-            '--smoothness', dest='smoothness', type='float',
-            default=float(0.2), action='store',
+            '--smoothness', dest='smoothness', type='float', default=float(0.2), action='store',
             help='Curve smoothing (less for more)')
 
         self.OptionParser.add_option(
-            '--height', dest='height', type='string', default='5',
-            action='store', help='Height (mm)')
+            '--height', dest='height', type='string', default='5', action='store',
+            help='Height (mm)')
 
         self.OptionParser.add_option(
-            '--min_line_width', dest='min_line_width', type='float',
-            default=float(1), action='store',
+            '--min_line_width', dest='min_line_width', type='float', default=float(1), action='store',
             help='Line width for non closed curves (mm)')
 
         self.OptionParser.add_option(
-            "-n", '--line_fn', dest='line_fn', type='int',
-            default=int(4), action='store',
+            "-n", '--line_fn', dest='line_fn', type='int', default=int(4), action='store',
             help='Line width precision ($fn when constructing hull)')
 
         self.OptionParser.add_option(
-            "--force_line", action="store", type="inkbool",
-            dest="force_line", default=False,
+            "--force_line", action="store", type="inkbool", dest="force_line", default=False,
             help="Force outline mode.")
 
         self.OptionParser.add_option(
-            '--fname', dest='fname', type='string', default='~/inkscape.scad',
-            action='store', help='Curve smoothing (less for more)')
+            '--fname', dest='fname', type='string', default='~/inkscape.scad', action='store',
+            help='Curve smoothing (less for more)')
 
         self.OptionParser.add_option(
-            '--parsedesc', dest='parsedesc', type='string', default='true',
-            action='store',
+            '--parsedesc', dest='parsedesc', type='string', default='true', action='store',
             help='Parse height and other parameters from object descriptions')
 
         self.OptionParser.add_option(
-            '--scad2stl', dest='scad2stl', type='string', default='false',
-            action='store',
-            help='Also convert to STL ( details see --scad2stlcmd option )')
+            '--scadview', dest='scadview', type='string', default='false', action='store',
+            help='Open the file with openscad ( details see --scadviewcmd option )')
         self.OptionParser.add_option(
-            '--scad2stlcmd', dest='scad2stlcmd', type='string',
-            default=INX_SCAD2STL, action='store',
-            help='Command used to convert to STL. Use {SCAD} for the ' +
-            'openSCAD input and {STL} for the STL output file.')
+            '--scadviewcmd', dest='scadviewcmd', type='string', default=INX_SCADVIEW, action='store',
+            help='Command used start an openscad viewer. Use {SCAD} for the openSCAD input.')
 
         self.OptionParser.add_option(
-            '--stlpost', dest='stlpost', type='string', default='false',
-            action='store', help='Start e.g. a slicer. This implies the ' +
-            '--scad2stl option. ( see --stlpostcmd )')
+            '--scad2stl', dest='scad2stl', type='string', default='false', action='store',
+            help='Also convert to STL ( details see --scad2stlcmd option )')
         self.OptionParser.add_option(
-            '--stlpostcmd', dest='stlpostcmd', type='string',
-            default=INX_STL_POSTPROCESSING, action='store',
-            help='Command used for post processing an STL file ' +
-            '(typically a slicer). Use {STL} for the STL filename.')
+            '--scad2stlcmd', dest='scad2stlcmd', type='string', default=INX_SCAD2STL, action='store',
+            help='Command used to convert to STL. Use {SCAD} for the openSCAD input and {STL} for the STL output file.')
+
+        self.OptionParser.add_option(
+            '--stlpost', dest='stlpost', type='string', default='false', action='store',
+            help='Start e.g. a slicer. This implies the --scad2stl option. ( see --stlpostcmd )')
+        self.OptionParser.add_option(
+            '--stlpostcmd', dest='stlpostcmd', type='string', default=INX_STL_POSTPROCESSING, action='store',
+            help='Command used for post processing an STL file (typically a slicer). Use {STL} for the STL filename.')
 
         self.dpi = 90.0                # factored out for inkscape-0.92
         self.px_used = False           # raw px unit depends on correct dpi.
-        self.cx = float(DEFAULT_WIDTH) / 2.0
+        self.cx = float(DEFAULT_WIDTH)  / 2.0
         self.cy = float(DEFAULT_HEIGHT) / 2.0
         self.xmin, self.xmax = (1.0E70, -1.0E70)
         self.ymin, self.ymax = (1.0E70, -1.0E70)
@@ -531,10 +543,9 @@ class OpenSCAD(inkex.Effect):
             if viewbox:
                 vinfo = viewbox.strip().replace(',', ' ').split(' ')
                 if (vinfo[2] != 0) and (vinfo[3] != 0):
-                    sx = self.docWidth / float(vinfo[2])
+                    sx = self.docWidth  / float(vinfo[2])
                     sy = self.docHeight / float(vinfo[3])
-                    self.docTransform = simpletransform.parseTransform(
-                        'scale(%f,%f)' % (sx, sy))
+                    self.docTransform = simpletransform.parseTransform('scale(%f,%f)' % (sx, sy))
 
     def getPathVertices(self, path, node=None, transform=None):
 
@@ -573,8 +584,7 @@ class OpenSCAD(inkex.Effect):
             # We've started a new subpath
             # See if there is a prior subpath and whether we should keep it
             if len(subpath_vertices):
-                subpath_list.append(
-                    [subpath_vertices, [sp_xmin, sp_xmax, sp_ymin, sp_ymax]])
+                subpath_list.append([subpath_vertices, [sp_xmin, sp_xmax, sp_ymin, sp_ymax]])
 
             subpath_vertices = []
             subdivideCubicPath(sp, float(self.options.smoothness))
@@ -620,8 +630,7 @@ class OpenSCAD(inkex.Effect):
 
         # Handle the final subpath
         if len(subpath_vertices):
-            subpath_list.append(
-                [subpath_vertices, [sp_xmin, sp_xmax, sp_ymin, sp_ymax]])
+            subpath_list.append([subpath_vertices, [sp_xmin, sp_xmax, sp_ymin, sp_ymax]])
 
         if len(subpath_list) > 0:
             self.paths[node] = subpath_list
@@ -638,6 +647,7 @@ class OpenSCAD(inkex.Effect):
     def convertPath(self, node):
 
         def object_merge_extrusion_values(extrusion, node):
+
             """ Parser for description and ID fields for extrusion parameters.
                 This recurse into parents, to inherit values from enclosing
                 groups.
@@ -689,8 +699,7 @@ class OpenSCAD(inkex.Effect):
                     contains[i].append(j)
                     # subpath j is contained in subpath i
                     contained_by[j].append(i)
-                elif polyInPoly(
-                        path[i][0], path[i][1], path[j][0], path[j][1]):
+                elif polyInPoly(path[i][0], path[i][1], path[j][0], path[j][1]):
                     # subpath j contains subpath i
                     contains[j].append(i)
                     # subpath i is containd in subpath j
@@ -716,8 +725,7 @@ class OpenSCAD(inkex.Effect):
         else:
             filled = True
         if (filled is False and style.get('stroke', 'none') == 'none'):
-            inkex.errormsg("WARNING: " + rawid + " has fill:none and " +
-                           "stroke:none, object ignored.")
+            inkex.errormsg("WARNING: " + rawid + " has fill:none and stroke:none, object ignored.")
             return
 
         # inkex.errormsg('filled='+str(filled))
@@ -734,9 +742,8 @@ class OpenSCAD(inkex.Effect):
             bbox = path[i][1]   # [xmin, xmax, ymin, ymax]
 
             #
-            polycenter = id + '_' + str(prefix) + '_center = [%f,%f]' % \
-                ((bbox[0]+bbox[1])*.5-self.cx,
-                 (bbox[2]+bbox[3])*.5-self.cy)
+            polycenter = id + '_' + str(prefix) + '_center = [%f,%f]' % ((bbox[0] + bbox[1]) * .5 - self.cx,
+                                                                         (bbox[2] + bbox[3]) * .5 - self.cy)
             polypoints = id + '_' + str(prefix) + '_points = ['
             # polypaths = [[0,1,2], [3,4,5]]   # this path is two triangle
             polypaths = id + '_' + str(prefix) + '_paths = [['
@@ -781,8 +788,7 @@ class OpenSCAD(inkex.Effect):
         # #### end global data for msg_*() functions. ####
 
         self.f.write('module poly_' + id + '(h, w, s, res=line_fn)\n{\n')
-        self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' %
-                     (self.dpi, self.dpi))
+        self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' % (self.dpi, self.dpi))
 
         # And add the call to the call list
         # Height is set by the overall module parameter
@@ -791,10 +797,8 @@ class OpenSCAD(inkex.Effect):
         if self.options.parsedesc == 'true':
             object_merge_extrusion_values(extrusion, node)
 
-        call_item = \
-            'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
-                extrusion['raise'], id, extrusion['height'],
-                stroke_width_mm, extrusion['scale'])
+        call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
+            extrusion['raise'], id, extrusion['height'], stroke_width_mm, extrusion['scale'])
 
         if extrusion['neg']:
             self.call_list_neg.append(call_item)
@@ -835,8 +839,7 @@ class OpenSCAD(inkex.Effect):
         # End the module
         self.f.write('  }\n}\n')
 
-    def recursivelyTraverseSvg(self, aNodeList,
-                               matCurrent=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+    def recursivelyTraverseSvg(self, aNodeList, matCurrent=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
                                parent_visibility='visible'):
 
         '''
@@ -869,8 +872,7 @@ class OpenSCAD(inkex.Effect):
 
             # First apply the current matrix transform to this node's tranform
             matNew = simpletransform.composeTransform(
-                matCurrent,
-                simpletransform.parseTransform(node.get("transform")))
+                matCurrent, simpletransform.parseTransform(node.get("transform")))
 
             if node.tag == inkex.addNS('g', 'svg') or node.tag == 'g':
 
@@ -905,9 +907,7 @@ class OpenSCAD(inkex.Effect):
                     y = float(node.get('y', '0'))
                     # Note: the transform has already been applied
                     if (x != 0) or (y != 0):
-                        matNew2 = composeTransform(
-                            matNew,
-                            parseTransform('translate(%f,%f)' % (x, y)))
+                        matNew2 = composeTransform(matNew, parseTransform('translate(%f,%f)' % (x, y)))
                     else:
                         matNew2 = matNew
                     v = node.get('visibility', v)
@@ -968,8 +968,7 @@ class OpenSCAD(inkex.Effect):
                 a.append([' L ', [x2, y2]])
                 self.getPathVertices(simplepath.formatPath(a), node, matNew)
 
-            elif node.tag == inkex.addNS('polyline', 'svg') or \
-                    node.tag == 'polyline':
+            elif node.tag == inkex.addNS('polyline', 'svg') or node.tag == 'polyline':
 
                 # Convert
                 #
@@ -986,13 +985,10 @@ class OpenSCAD(inkex.Effect):
                     pass
 
                 pa = pl.split()
-                d = "".join(
-                    ["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(
-                        0, len(pa))])
+                d = "".join(["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(0, len(pa))])
                 self.getPathVertices(d, node, matNew)
 
-            elif node.tag == inkex.addNS('polygon', 'svg') or \
-                    node.tag == 'polygon':
+            elif node.tag == inkex.addNS('polygon', 'svg') or node.tag == 'polygon':
 
                 # Convert
                 #
@@ -1009,16 +1005,12 @@ class OpenSCAD(inkex.Effect):
                     pass
 
                 pa = pl.split()
-                d = "".join(
-                    ["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(
-                        0, len(pa))])
+                d = "".join(["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(0, len(pa))])
                 d += " Z"
                 self.getPathVertices(d, node, matNew)
 
-            elif node.tag == inkex.addNS('ellipse', 'svg') or \
-                    node.tag == 'ellipse' or \
-                    node.tag == inkex.addNS('circle', 'svg') or \
-                    node.tag == 'circle':
+            elif node.tag == inkex.addNS('ellipse', 'svg') or node.tag == 'ellipse' or \
+                 node.tag == inkex.addNS('circle', 'svg')  or node.tag == 'circle':
 
                 # Convert circles and ellipses to a path with two 180 degree
                 # arcs. In general (an ellipse), we convert
@@ -1037,8 +1029,7 @@ class OpenSCAD(inkex.Effect):
                 # Note: ellipses or circles with a radius attribute of value 0
                 # are ignored
 
-                if node.tag == inkex.addNS('ellipse', 'svg') or \
-                        node.tag == 'ellipse':
+                if node.tag == inkex.addNS('ellipse', 'svg') or node.tag == 'ellipse':
                     rx = float(node.get('rx', '0'))
                     ry = float(node.get('ry', '0'))
                 else:
@@ -1051,121 +1042,82 @@ class OpenSCAD(inkex.Effect):
                 cy = float(node.get('cy', '0'))
                 x1 = cx - rx
                 x2 = cx + rx
-                d = 'M %f,%f ' % (x1, cy) + \
-                    'A %f,%f ' % (rx, ry) + \
+                d = 'M %f,%f '     % (x1, cy) + \
+                    'A %f,%f '     % (rx, ry) + \
                     '0 1 0 %f,%f ' % (x2, cy) + \
-                    'A %f,%f ' % (rx, ry) + \
-                    '0 1 0 %f,%f' % (x1, cy)
+                    'A %f,%f '     % (rx, ry) + \
+                    '0 1 0 %f,%f'  % (x1, cy)
                 self.getPathVertices(d, node, matNew)
 
-            elif node.tag == inkex.addNS('pattern', 'svg') or \
-                    node.tag == 'pattern':
-
+            elif node.tag == inkex.addNS('pattern', 'svg') or node.tag == 'pattern':
                 pass
 
-            elif node.tag == inkex.addNS('metadata', 'svg') or \
-                    node.tag == 'metadata':
-
+            elif node.tag == inkex.addNS('metadata', 'svg') or node.tag == 'metadata':
                 pass
 
             elif node.tag == inkex.addNS('defs', 'svg') or node.tag == 'defs':
-
                 pass
 
             elif node.tag == inkex.addNS('desc', 'svg') or node.tag == 'desc':
-
                 pass
 
-            elif node.tag == inkex.addNS('namedview', 'sodipodi') or \
-                    node.tag == 'namedview':
-
+            elif node.tag == inkex.addNS('namedview', 'sodipodi') or node.tag == 'namedview':
                 pass
 
-            elif node.tag == inkex.addNS('eggbot', 'svg') or \
-                    node.tag == 'eggbot':
-
+            elif node.tag == inkex.addNS('eggbot', 'svg') or node.tag == 'eggbot':
                 pass
 
             elif node.tag == inkex.addNS('text', 'svg') or node.tag == 'text':
-
-                inkex.errormsg(
-                    'Warning: unable to draw text, '
-                    'please convert it to a path first.')
-
+                inkex.errormsg('Warning: unable to draw text, please convert it to a path first.')
                 pass
 
-            elif node.tag == inkex.addNS('title', 'svg') or \
-                    node.tag == 'title':
-
+            elif node.tag == inkex.addNS('title', 'svg') or node.tag == 'title':
                 pass
 
-            elif node.tag == inkex.addNS('image', 'svg') or \
-                    node.tag == 'image':
-
+            elif node.tag == inkex.addNS('image', 'svg') or node.tag == 'image':
                 if 'image' not in self.warnings:
                     inkex.errormsg(
                         gettext.gettext(
-                            'Warning: unable to draw bitmap images; '
-                            'please convert them to line art first.  '
-                            'Consider using the "Trace bitmap..." '
-                            'tool of the "Path" menu.  Mac users please '
-                            'note that some X11 settings may '
-                            'cause cut-and-paste operations to paste in '
-                            'bitmap copies.'))
+                            'Warning: unable to draw bitmap images; please convert them to line art first.  '
+                            'Consider using the "Trace bitmap..." tool of the "Path" menu.  Mac users please '
+                            'note that some X11 settings may cause cut-and-paste operations to paste in bitmap copies.'))
                     self.warnings['image'] = 1
                 pass
 
-            elif node.tag == inkex.addNS('pattern', 'svg') or \
-                    node.tag == 'pattern':
-
+            elif node.tag == inkex.addNS('pattern', 'svg') or node.tag == 'pattern':
                 pass
 
-            elif node.tag == inkex.addNS('radialGradient', 'svg') or \
-                    node.tag == 'radialGradient':
-
+            elif node.tag == inkex.addNS('radialGradient', 'svg') or node.tag == 'radialGradient':
                 # Similar to pattern
                 pass
 
-            elif node.tag == inkex.addNS('linearGradient', 'svg') or \
-                    node.tag == 'linearGradient':
-
+            elif node.tag == inkex.addNS('linearGradient', 'svg') or node.tag == 'linearGradient':
                 # Similar in pattern
                 pass
 
-            elif node.tag == inkex.addNS('style', 'svg') or \
-                    node.tag == 'style':
-
+            elif node.tag == inkex.addNS('style', 'svg') or node.tag == 'style':
                 # This is a reference to an external style sheet and not the
                 # value of a style attribute to be inherited by child elements
                 pass
 
-            elif node.tag == inkex.addNS('cursor', 'svg') or \
-                    node.tag == 'cursor':
-
+            elif node.tag == inkex.addNS('cursor', 'svg') or node.tag == 'cursor':
                 pass
 
-            elif node.tag == inkex.addNS('color-profile', 'svg') or \
-                    node.tag == 'color-profile':
-
+            elif node.tag == inkex.addNS('color-profile', 'svg') or node.tag == 'color-profile':
                 # Gamma curves, color temp, etc. are not relevant to single
                 # color output
                 pass
 
             elif not isinstance(node.tag, basestring):
-
                 # This is likely an XML processing instruction such as an XML
                 # comment.  lxml uses a function reference for such node tags
                 # and as such the node tag is likely not a printable string.
                 # Further, converting it to a printable string likely won't
                 # be very useful.
-
                 pass
 
             else:
-
-                inkex.errormsg(
-                    'Warning: unable to draw object <%s>, '
-                    'please convert it to a path first.' % node.tag)
+                inkex.errormsg('Warning: unable to draw object <%s>, please convert it to a path first.' % node.tag)
                 pass
 
     def recursivelyGetEnclosingTransform(self, node):
@@ -1185,8 +1137,7 @@ class OpenSCAD(inkex.Effect):
                 if parent_transform is None:
                     return tr
                 else:
-                    return simpletransform.composeTransform(
-                        parent_transform, tr)
+                    return simpletransform.composeTransform(parent_transform, tr)
         else:
             return self.docTransform
 
@@ -1203,13 +1154,11 @@ class OpenSCAD(inkex.Effect):
         if self.options.ids:
             # Traverse the selected objects
             for id in self.options.ids:
-                transform = self.recursivelyGetEnclosingTransform(
-                    self.selected[id])
+                transform = self.recursivelyGetEnclosingTransform(self.selected[id])
                 self.recursivelyTraverseSvg([self.selected[id]], transform)
         else:
             # Traverse the entire document building new, transformed paths
-            self.recursivelyTraverseSvg(
-                self.document.getroot(), self.docTransform)
+            self.recursivelyTraverseSvg(self.document.getroot(), self.docTransform)
 
         # Determine the center of the drawing's bounding box
         self.cx = self.xmin + (self.xmax - self.xmin) / 2.0
@@ -1236,10 +1185,8 @@ fudge = 0.1;
             # writeout users parameters
             self.f.write('height = %s;\n' % (self.options.height))
             self.f.write('line_fn = %d;\n' % (self.options.line_fn))
-            self.f.write('min_line_width = %s;\n' %
-                         (self.options.min_line_width))
-            self.f.write('function min_line_mm(w) = ' +
-                         'max(min_line_width, w)*%g/25.4;\n\n' % self.dpi)
+            self.f.write('min_line_width = %s;\n' % (self.options.min_line_width))
+            self.f.write('function min_line_mm(w) = max(min_line_width, w) * %g/25.4;\n\n' % self.dpi)
 
             for key in self.paths:
                 self.f.write('\n')
@@ -1248,18 +1195,17 @@ fudge = 0.1;
             # Come up with a name for the module based on the file name.
             name = os.path.splitext(os.path.basename(self.options.fname))[0]
             # Remove all punctuation except underscore.
-            name = re.sub(
-                '[' + string.punctuation.replace('_', '') + ']', '', name)
+            name = re.sub('[' + string.punctuation.replace('_', '') + ']', '', name)
 
             self.f.write('\nmodule %s(h)\n{\n' % name)
 
             # Now output the list of modules to call
             self.f.write('  difference()\n  {\n    union()\n    {\n')
             for call in self.call_list:
-                self.f.write('      '+call)
+                self.f.write('      ' + call)
             self.f.write('    }\n    union()\n    {\n')
             for call in self.call_list_neg:
-                self.f.write('      '+call)
+                self.f.write('      ' + call)
             self.f.write('    }\n  }\n')
 
             # The module that calls all the other ones.
@@ -1270,10 +1216,35 @@ fudge = 0.1;
             inkex.errormsg('Unable to write file ' + self.options.fname)
             inkex.errormsg("ERROR: " + str(e))
 
+        if self.options.scadview == 'true':
+            pidfile = tempfile.gettempdir() + os.sep + "paths2openscad.pid"
+            running = False
+            try:
+                m = re.match(r"(\d+)", open(pidfile).read())
+                pid = int(m.group(1))
+                # print >> sys.stderr, "pid {1} seen in {0}".format(pidfile, pid)
+                running = IsProcessRunning(pid)
+            except:
+                pass
+            if not running:
+                cmd = self.options.scadviewcmd.format(**{'SCAD': full_fname})
+                import subprocess
+                try:
+                    tty = open("/dev/tty", "w")
+                except:
+                    tty = subprocess.PIPE
+                try:
+                    proc = subprocess.Popen(cmd, shell=True, stdin=tty, stdout=tty, stderr=tty)
+                except OSError as e:
+                    raise OSError("%s failed: errno=%d %s" % (cmd, e.errno, e.strerror))
+                try:
+                    open(pidfile, "w").write(str(proc.pid)+"\n")
+                except:
+                    pass
+
         if self.options.scad2stl == 'true' or self.options.stlpost == 'true':
             stl_fname = re.sub(r"\.SCAD", "", full_fname, flags=re.I) + '.stl'
-            cmd = self.options.scad2stlcmd.format(
-                **{'SCAD': full_fname, 'STL': stl_fname})
+            cmd = self.options.scad2stlcmd.format(**{'SCAD': full_fname, 'STL': stl_fname})
             try:
                 os.unlink(stl_fname)
             except:
@@ -1281,12 +1252,9 @@ fudge = 0.1;
 
             import subprocess
             try:
-                proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
+                proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except OSError as e:
-                raise OSError("{0} failed: errno={1} {2}".format(
-                              cmd, e.errno, e.strerror))
+                raise OSError("{0} failed: errno={1} {2}".format(cmd, e.errno, e.strerror))
             stdout, stderr = proc.communicate()
 
             len = -1
@@ -1296,9 +1264,7 @@ fudge = 0.1;
                 pass
             if len < 1000:
                 print >> sys.stderr, "CMD: {0}".format(cmd)
-                # pep8 enforced 80 columns limit is here: --------------------v
-                print >> sys.stderr, "WARNING: {0} is very small: {1} bytes.".\
-                    format(stl_fname, len)
+                print >> sys.stderr, "WARNING: {0} is very small: {1} bytes.".format(stl_fname, len)
                 print >> sys.stderr, "= " * 24
                 print >> sys.stderr, "STDOUT:\n", stdout, "= " * 24
                 print >> sys.stderr, "STDERR:\n", stderr, "= " * 24
@@ -1313,11 +1279,9 @@ fudge = 0.1;
                     tty = subprocess.PIPE
 
                 try:
-                    proc = subprocess.Popen(cmd, shell=True,
-                                            stdin=tty, stdout=tty, stderr=tty)
+                    proc = subprocess.Popen(cmd, shell=True, stdin=tty, stdout=tty, stderr=tty)
                 except OSError as e:
-                    raise OSError("%s failed: errno=%d %s" %
-                                  (cmd, e.errno, e.strerror))
+                    raise OSError("%s failed: errno=%d %s" % (cmd, e.errno, e.strerror))
 
                 stdout, stderr = proc.communicate()
                 if stdout or stderr:
