@@ -1,0 +1,15 @@
+                                        jw, So 18. Jun 18:55:30 CEST 2017
+
+paths2openscad.pot serves as a template for new *.po files. It can be refreshed
+or generated with the command 'make extract'.
+The Makefile contains all the needed magic to get intltools and gettext going.
+
+Then you can copy this template to a new $LANG.po file and start translating there.
+
+additional paths2openscad-$LANG.inx files can be placed next to the original
+paths2openscad.inx file in the extensions directory.  Their 'id' element should
+be changed to include the language. Then inkscape will show both in the menue.
+If the 'id' remains unchanged, inkscape will show two identical entries in the menue.
+
+For normal use, only the one *.inx file for the desired language should be installed.
+

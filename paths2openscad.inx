@@ -17,8 +17,8 @@
     <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from description).</_param>
 
     <param name="parsedesc" type="boolean" _gui-text="Description parsing">true</param>
-    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale for a specific object from its description or ID. See the Extrusion Syntax tab for details.
-    </_param>
+    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale for a specific object from its description or ID. See the Extrusion Syntax tab for details.</_param>
+    <_param name="spacer" type="description"><!-- --></_param>
 
     <param name="scadview" type="boolean" _gui-text="View in OpenSCAD">false</param>
     <_param name="scadview_help" type="description">Start OpenSCAD to view the 3D Model.</_param>
@@ -53,7 +53,7 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
   </page>
   <page name="commands" _gui-text="Commands">
 
-    <_param name="commands_help" type="description">As shipped, the commands work with Linux. Windows and Mac users may have to use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as specified in the main tab. Use '{STL}' for an STL output file in the same folder "with the same name except for a .stl suffix.<_param>
+    <_param name="commands_help" type="description">As shipped, the commands work with Linux. Windows and Mac users may have to use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as specified in the main tab. Use '{STL}' for an STL output file in the same folder with the same name except for a .stl suffix.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->

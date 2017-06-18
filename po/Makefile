@@ -8,7 +8,7 @@
 NAME=paths2openscad
 
 .PHONY: all
-all: extract
+all: extract merge
 
 Makevars:
 	echo >  $@ 'DOMAIN = $(NAME)'
@@ -29,6 +29,16 @@ extract: POTFILES.in Makevars
 	@echo "Expect a complaint about a 'filename containing newline' below:"
 	intltool-update --pot --verbose
 
+.PHONY: merge
+merge: de.po
+	mkdir -p merged; 
+	cd merged; intltool-merge -x -m .. ../../$(NAME).inx inx
+	# Postprocessing of localized inx files:
+	# * the spacer comment gets stripped. It is essential for the spacer. put it back.
+	# * the id needs to change, so that we have separate menu entries.
+	cd merged; for lang in *; do sed -e 's|name="spacer"/>|name="spacer"><!-- --></param>|' -e "s|openscad</id>|openscad.$$lang</id>|" < $$lang/inx > ../../paths2openscad-$$lang.inx; done
+	rm -rf merged
+
 .PHONY: clean
 clean:
-	rm -f *.pot
+	rm -rf *.pot merged

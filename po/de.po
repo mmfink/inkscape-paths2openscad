@@ -139,7 +139,7 @@ msgstr "Ansicht mit OpenSCAD: "
 #. CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py
 #: ../paths2openscad.inx.h:26
 msgid "Convert to STL: "
-msgstr "Umwandeln nach STL: "
+msgstr "Nach STL umwandeln: "
 
 #. CAUTION: keep this command in sync with the default INX_STL_POSTPROCESSING in paths2openscad.py
 #: ../paths2openscad.inx.h:28
@@ -150,8 +150,8 @@ msgstr "STL Nachbearbeitung: "
 msgid ""
 "As shipped, the commands work with Linux. Windows and Mac users may have to "
 "use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as "
-"specified in the main tab. Use '{STL}' for an STL output file in the same folder "
-"with the same name except for a .stl suffix."
+"specified in the main tab. Use '{STL}' for an STL output file in the same "
+"folder with the same name except for a .stl suffix."
 msgstr ""
 "Die Voreinstellungen dieser Kommandos funktionieren unter Linux. Windows und Mac Benutzer "
 "müssen eventuell vollständige Pfade und andere Optionen benutzen. Platzhalter: '{SCAD}' steht für "
