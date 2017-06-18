@@ -13,7 +13,7 @@
 <param name="tab" type="notebook">
   <page name="splash" _gui-text="Paths to OpenSCAD">
     <param name="fname" type="string" _gui-text="Output file">~/inkscape.scad</param>
-    <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height (mm)">5.0</param>
+    <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height [mm]">5.0</param>
     <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from description).</_param>
 
     <param name="parsedesc" type="boolean" _gui-text="Description parsing">true</param>
@@ -29,7 +29,7 @@
     <_param name="spacer" type="description"><!-- --></_param>
 
     <param name="stlpost" type="boolean" _gui-text="STL postprocessing">false</param>
-    <_param name="stlpost_help" type="description">Start e.g. a slicer after running the command above. See the Commands tab for details.</_param>
+    <_param name="stlpost_help" type="description">Start e.g. a slicer after converting to STL. See the Commands tab for details.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
   </page>
@@ -38,11 +38,11 @@
     <_param name="smoothness_help" type="description">Used when rendering curves. Smaller values are smoother.
     </_param>
     <_param name="outline_header" type="description" appearance="header">Outline Mode</_param>
-    <_param name="outline_help" type="description">Objects are extruded into 3D either in normal mode, or in outline mode. Normally the filled surface of a closed object is extruded a 3D object without adding any line width. Lines that are not a closed loop and objects with no fill are rendered in outline mode.
+    <_param name="outline_help" type="description">Objects are extruded into 3D either in normal mode, or in outline mode. Normally the filled surface of a closed object is extruded without adding any line width. Lines that are not a closed loop and objects with no fill are rendered in outline mode.
 
 Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
     <param name="min_line_width" type="float" min="0.1" max="10" _gui-text="Minimum line width [mm]">1.0</param>
-    <param name="line_fn" type="optiongroup" appearance="minimal"  _gui-text="Line width precision">
+    <param name="line_fn" type="optiongroup" appearance="minimal"  _gui-text="Line width precision ($fn)">
       <option value="4">Rough (fast)</option>
       <option value="8">Medium (slow)</option>
       <option value="16">Fine (very slow)</option>
@@ -53,12 +53,12 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
   </page>
   <page name="commands" _gui-text="Commands">
 
-    <_param name="commands_help" type="description">As shipped, the commands work with Linux. Windows and Mac users may have to use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as specified in the main tab. Use '{STL}' for an STL output file with the same name and in the same folder.</_param>
+    <_param name="commands_help" type="description">As shipped, the commands work with Linux. Windows and Mac users may have to use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as specified in the main tab. Use '{STL}' for an STL output file in the same folder "with the same name except for a .stl suffix.<_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
     <param name="scadviewcmd" type="string" _gui-text="View in OpenSCAD: ">openscad '{SCAD}'</param>
-    <_param name="scadviewcmd_help" type="description">Started non-blocking, if not already running. A running OpenSCAD picks up changed files automatically.</_param>
+    <_param name="scadviewcmd_help" type="description">Started non-blocking, if not already running. A running OpenSCAD picks up changed contents automatically.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py -->
@@ -73,7 +73,7 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
 
   </page>
   <page name="extrusion" _gui-text="Extrusion Syntax">
-    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters canbe read from an object's description or ID.
+    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters can be read from an object's description or ID.
 
 If an object's ID is in either name_XXX_mm or name_XXXmm
 format, then XXX is translated into height in millimeters.
@@ -84,7 +84,7 @@ If the height is prefixed with a letter 'a', the
 object is "anti-matter", it is cut away (subtracted)
 from all normal objects.
     </_param>
-    <_param name="extrusion_2" type="description" appearance="header">Syntax for an object's description field</_param>
+    <_param name="extrusion_2" type="description" appearance="header">Syntax for the object property description</_param>
     <_param name="extrusion_3" type="description" xml:space="preserve">Height: 10 mm        or        Height: a12.3 mm
   Linear extrusion height of the object. Note that the
   height always counts upwards, even for "anti-matter".
@@ -95,12 +95,10 @@ Raise: 4.5 mm
 Scale: 90 %           or           Scale: 90,60 %
   Taper the object along its height. The top surface is scaled to
   this value. An optional second value specifies a different
-  scaling along the Y axis. Useful for tapering lengthy objects.
+  scaling along the Y axis.
 
 All parameters can also be specified in enclosing groups.
-
-A height can be specified in 3 ways: As a default height, in
-ID fields, or in descriptions. Description takes precedence.</_param>
+Parameters in the objects take precedence over groups.</_param>
   </page>
   <page name="info" _gui-text="About...">
     <_param name="aboutpage" type="description" xml:space="preserve">
@@ -127,7 +125,7 @@ Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
 
-<a href="https://github.com/fablabnbg/inkscape-paths2openscad/releases">https://github.com/fablabnbg/inkscape-paths2openscad/releases</a>
+Find updates at https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
 <!-- keep the version numnber in sync with paths2openscad.py header comments -->
 </_param>

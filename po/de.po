@@ -1,0 +1,218 @@
+# German translation for inkscape-paths2openscad
+#
+# Copyright (C) 2017 juergen@fabmail.org
+# This file is distributed under the same license as the PACKAGE package.
+#
+#: ../paths2openscad.inx.h:89
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: inkscape-paths2openscad 0.18\n"
+"Report-Msgid-Bugs-To: juergen@fabmail.org\n"
+"POT-Creation-Date: 2017-06-18 17:07+0200\n"
+"PO-Revision-Date: 2017-06-18 17:07+0200\n"
+"Last-Translator: Juergen Weigert <juergen@fabmail.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../paths2openscad.py:1081
+msgid ""
+"Warning: unable to draw bitmap images; please convert them to line art "
+"first.  Consider using the \"Trace bitmap...\" tool of the \"Path\" menu.  "
+"Mac users please note that some X11 settings may cause cut-and-paste "
+"operations to paste in bitmap copies."
+msgstr ""
+"Warnung: kann keine bitmap Bilder zeichnen; bitte diese zuerst vektorisieren. "
+"Dazu kann \"Bitmap nachzeichnen...\" (\"Trace bitmap...\") im \"Pfad\" Menü verwendet werden. "
+"Mac Benutzer: Manche X11 Einstellungen bewirken, dass Kopier-und-Einfüge-Operationen nur "
+"Bitmaps erzeugen."
+
+#: ../paths2openscad.inx.h:1
+msgid "Paths to OpenSCAD"
+msgstr "Pfade nach OpenSCAD"
+
+#: ../paths2openscad.inx.h:2
+msgid "Output file"
+msgstr "Ausgabedatei"
+
+#: ../paths2openscad.inx.h:3
+msgid "Height [mm]"
+msgstr "Höhe [mm]"
+
+#: ../paths2openscad.inx.h:4
+msgid "Description parsing"
+msgstr "Beschreibung Auslesen"
+
+#: ../paths2openscad.inx.h:5
+msgid "View in OpenSCAD"
+msgstr "Ansicht mit OpenSCAD"
+
+#: ../paths2openscad.inx.h:6
+msgid "Convert to STL"
+msgstr "Nach STL umwandeln"
+
+#: ../paths2openscad.inx.h:7
+msgid "STL postprocessing"
+msgstr "STL Nachbearbeitung"
+
+#: ../paths2openscad.inx.h:8
+msgid "Default 3D extrude height (when no height is parsed from description)."
+msgstr "Vorgegebene Höhe der 3D-Extrusion (wenn keine Höhe in der Object-Beschreibung steht)."
+
+#: ../paths2openscad.inx.h:9
+msgid ""
+"Read the extruded height, raise, scale for a specific object from its "
+"description or ID. See the Extrusion Syntax tab for details."
+msgstr ""
+"Lese die extrudierte Höhe, Boden und Skalierung pro Objekt aus dessen "
+"Beschreibung oder ID. Siehe auch den Reiter Extrusion-Syntax."
+
+#: ../paths2openscad.inx.h:10
+msgid "Start OpenSCAD to view the 3D Model."
+msgstr "Starte OpenSCAD, um das 3D Modell zu sehen."
+
+#: ../paths2openscad.inx.h:11
+msgid "Also save an .stl file next to the specified output file."
+msgstr "Speiche neben der angegebene Ausgabedatei auch eine .stl-Datei ab."
+
+#: ../paths2openscad.inx.h:12
+msgid ""
+"Start e.g. a slicer after converting to STL. See the Commands tab "
+"for details."
+msgstr ""
+"Starte beispielsweise einen 'slicer' nach der STL-Konvertierung. Siehe auch den Reiter Kommandos."
+
+#: ../paths2openscad.inx.h:13
+msgid "Tuning"
+msgstr "Feinheiten"
+
+#: ../paths2openscad.inx.h:14
+msgid "Smoothing"
+msgstr "Glättung"
+
+#: ../paths2openscad.inx.h:15
+msgid "Minimum line width [mm]"
+msgstr "Minimale Linienbreite [mm]"
+
+#: ../paths2openscad.inx.h:16
+msgid "Line width precision ($fn)"
+msgstr "Genauigkeit der Linienbreite ($fn)"
+
+#: ../paths2openscad.inx.h:17
+msgid "Force outline mode, ignore fill"
+msgstr "Umrisslinien-Modus immer verwenden; Füllungen werden ignoriert"
+
+#: ../paths2openscad.inx.h:18
+msgid "Used when rendering curves. Smaller values are smoother."
+msgstr "Wird verwendet, wenn Kurven dargestellt werden. Kleinere Werte sind glatter."
+
+#: ../paths2openscad.inx.h:19
+msgid "Outline Mode"
+msgstr "Umrisslinien-Modus"
+
+#: ../paths2openscad.inx.h:21
+#, no-c-format
+msgid ""
+"Objects are extruded into 3D either in normal mode, or in outline mode. "
+"Normally the filled surface of a closed object is extruded "
+"without adding any line width. Lines that are not a closed loop and objects "
+"with no fill are rendered in outline mode. Note: the 'Scale: XX %' "
+"instruction has no effect in outline mode."
+msgstr ""
+"Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. "
+"Normalerweise werden gefüllte Flächen von geschlossenen Objekten extrudiert, die Dicke "
+"der Randlinie wird dabei nicht hinzugerechnet. Offene Linienzüge oder Objekte ohen Füllung "
+"werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus "
+"nicht beachtet."
+
+#: ../paths2openscad.inx.h:22
+msgid "Commands"
+msgstr "Kommandos"
+
+#. CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py
+#: ../paths2openscad.inx.h:24
+msgid "View in OpenSCAD: "
+msgstr "Ansicht mit OpenSCAD: "
+
+#. CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py
+#: ../paths2openscad.inx.h:26
+msgid "Convert to STL: "
+msgstr "Umwandeln nach STL: "
+
+#. CAUTION: keep this command in sync with the default INX_STL_POSTPROCESSING in paths2openscad.py
+#: ../paths2openscad.inx.h:28
+msgid "STL postprocessing: "
+msgstr "STL Nachbearbeitung: "
+
+#: ../paths2openscad.inx.h:29
+msgid ""
+"As shipped, the commands work with Linux. Windows and Mac users may have to "
+"use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as "
+"specified in the main tab. Use '{STL}' for an STL output file in the same folder "
+"with the same name except for a .stl suffix."
+msgstr ""
+"Die Voreinstellungen dieser Kommandos funktionieren unter Linux. Windows und Mac Benutzer "
+"müssen eventuell vollständige Pfade und andere Optionen benutzen. Platzhalter: '{SCAD}' steht für "
+"die OpenSCAD Datei wie im ersten Reiter angegeben. '{STL}' steht für eine Ausgabedatei im gleichen Verzeichnis "
+" und mit dem gleichen Namen aber mit .stl Endung."
+
+#: ../paths2openscad.inx.h:30
+msgid ""
+"Started non-blocking, if not already running. A running OpenSCAD picks up "
+"changed contents automatically."
+msgstr ""
+"Wird nicht-blockierend gestartet, falls es nicht bereits läuft. Ein laufendes OpenSCAD "
+"greift geänderte Inhalte automatisch auf."
+
+#: ../paths2openscad.inx.h:31
+msgid "Automatically run, when STL postprocessing is requested."
+msgstr "Wird automatisch ausgeführt, wenn STL Nachbearbeitung angefordert ist."
+
+#: ../paths2openscad.inx.h:32
+msgid "Append an '&amp;' for non-blocking."
+msgstr "Ein '&amp;' kann angehängt werden, um nicht-blockierend zu starten."
+
+#: ../paths2openscad.inx.h:33
+msgid "Extrusion Syntax"
+msgstr "Extrusion-Syntax"
+
+#: ../paths2openscad.inx.h:34
+msgid ""
+"Extrusion height and other parameters can be read from an object's "
+"description or ID."
+msgstr ""
+"Die Höhe der Extrusion so wie andere Parameter können aus der Objekt-Beschreibung oder ID gelesen werden."
+
+#: ../paths2openscad.inx.h:55
+msgid "Syntax for the object property description"
+msgstr "Syntax in der Objekteigenschaft Beschreibung"
+
+#: ../paths2openscad.inx.h:57
+#, no-c-format
+msgid "Height: 10 mm        or        Height: a12.3 mm"
+msgstr ""
+"Höhe: 10 mm          oder      Höhe: a12.3 mm"
+"  Objekthöhe für die Funktion linear_extrusion(). Die Höhe zählt immer nach oben, "
+"  auch im Falle von 'Antimaterie'."
+"  "
+"Boden: 4.5 mm"
+"  Hebe ein Objekt an, um einen Balkon (oder ein Fenster) zu erzeugen.
+"  "
+"Skalierung: 90 %       oder      Skalierung: 90,60 %"
+"  Verjüngt ein Objekt über die Höhe. Die obere Fläche wird um den Wert skaliert. "
+"  Optional kann ein zweiter Wert angegeben werden, um in X- und Y- Richtung "
+"  getrennt zu skalieren."
+"  "
+"Alle Angaben können auch in übergeordneten Gruppen gemacht weden."
+"Die Angabe im Objekt hat Vorrang vor der in einer Gruppe."
+
+#: ../paths2openscad.inx.h:88
+msgid "About..."
+msgstr "Über..."
+
+#: ../paths2openscad.inx.h:144
+msgid "Generate from Path"
+msgstr "Aus Pfad erzeugen"
+
