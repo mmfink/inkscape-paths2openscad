@@ -35,7 +35,7 @@
 #        Toplevel object from http://www.thingiverse.com/thing:1286041
 #        is already included.
 #
-# 2017-04-16, juergen@fabmail.org
+# 2017-04-16, juergen@fabmail.org 
 #   0.15 Fixed https://github.com/fablabnbg/inkscape-paths2openscad/
 #        issues/1#issuecomment-294257592
 #        Line width of V7 code became a minimum line width,
