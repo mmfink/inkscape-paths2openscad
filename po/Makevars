@@ -1,0 +1,5 @@
+DOMAIN = paths2openscad
+subdir = po
+top_builddir = ..
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_ --keyword=Q_ --keyword=C_:1c,2 --keyword=NC_:1c,2 --msgid-bugs-address=juergen@fabmail.org
+COPYRIGHT_HOLDER = Juergen Weigert <juergen@fabmail.org>
