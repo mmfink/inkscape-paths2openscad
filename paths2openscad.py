@@ -59,6 +59,9 @@
 #   Refactored the commands into a separate tab in the inx.
 #   Added 'View in OpenSCAD' feature with pidfile for single instance.
 #
+# 2017-08-10, juergen@fabmail.org
+#   0.19 fix style="" elements.
+#
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
