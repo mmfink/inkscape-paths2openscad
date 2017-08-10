@@ -381,7 +381,7 @@ class OpenSCAD(inkex.Effect):
 
         self.OptionParser.add_option(
             '--fname', dest='fname', type='string', default='~/inkscape.scad', action='store',
-            help='Curve smoothing (less for more)')
+            help='openSCAD output file.')
 
         self.OptionParser.add_option(
             '--parsedesc', dest='parsedesc', type='string', default='true', action='store',
@@ -640,8 +640,12 @@ class OpenSCAD(inkex.Effect):
         ret = {}
         # fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1
         for elem in style.split(';'):
-            (key, val) = elem.strip().split(':')
-            ret[key] = val
+            if len(elem):
+                try:
+                    (key, val) = elem.strip().split(':')
+                except:
+                    print >> sys.stderr, "unparsable element '{1}' in style '{0}'".format(elem, style)
+                ret[key] = val
         return ret
 
     def convertPath(self, node):
@@ -1166,6 +1170,10 @@ class OpenSCAD(inkex.Effect):
 
         # Determine which polygons lie entirely within other polygons
         try:
+            if not os.sep in self.options.fname and 'PWD' in os.environ:
+                # current working directory of an extension seems to be the extension dir.
+                # Workaround using PWD, if available...
+                self.options.fname = os.environ['PWD'] + '/' + self.options.fname
             full_fname = os.path.expanduser(self.options.fname)
             if '/' != os.sep:
                 full_fname = full_fname.replace('/', os.sep)
