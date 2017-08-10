@@ -120,7 +120,7 @@ to millimeters using the SVG Standard's
 definition of 96 pixels = 1 inch
 (before inkscape 0.92 the definition was 90 dpi)
 
-v0.18
+v0.19
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
