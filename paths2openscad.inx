@@ -60,7 +60,7 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
     <param name="scadviewcmd" type="string" _gui-text="View in OpenSCAD: ">openscad '{NAME}.scad'</param>
     <_param name="scadviewcmd_help" type="description">Is only started no command of the same name is running. Always started non-blocking. A running OpenSCAD automatically picks up changed file contents. Defaults:</_param>
-    <_param name="scadviewcmd_default_linux" type="Linux: openscad '{NAME}.scad'</_param>
+    <_param name="scadviewcmd_default_linux" type="description">Linux: openscad '{NAME}.scad'</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py -->
@@ -75,9 +75,7 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
   </page>
 
   <page name="extrusion" _gui-text="Extrusion Syntax">
-    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters can be defined through an svg object's description label or id. The labels of all objects can be edited in the column 'Label' of the menu 'Object->Objects ...' - The description of one single active object is editable as free text in the menu 'Object->Object Properties ...' (Shift-Ctrl-O). The ID and Label are also editable there.
-
-Label and id can specify a height. A height in the label overwrites a height in the id.
+    <_param name="extrusion_1" type="description" xml:space="preserve">The height and other parameters can be defined through an svg object's description label or id. The menu 'Object-&gt;Objects ...' shows an overview of all, the menu 'Object-&gt;Object Properties ...' (Shift-Ctrl-O) shows details of one selected object.
 
 If an object's ID is in either name_XXX_mm or name_XXXmm
 format, then XXX is translated into height in millimeters.
@@ -97,7 +95,7 @@ Raise: 4.5 mm
   Move an object upwards to create a balcony (or window).
 
 Scale: 90 %           or           Scale: 120,60 %
-  Taper the object along its height. The bottom surface always 
+  Taper the object along its height. The bottom surface always
   is as drawn, but the top surface is scaled to this value.
   If two values are given (separated by Komma), different scaling
   applies along X- and Y-axis.
@@ -116,7 +114,7 @@ with the "Path &gt; Object to Path" menu item.
 Inkscape's units of pixels are converted
 to millimeters using the SVG standard's
 definition of 96 px = 1 inch = 25.4 mm.
-(Before inkscape 0.92 the standard was 90 px per inch, 
+(Before inkscape 0.92 the standard was 90 px per inch,
 Adobe products often use 75 px per inch)
 
 v0.19

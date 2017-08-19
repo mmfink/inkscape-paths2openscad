@@ -72,44 +72,43 @@
   </page>
 
   <page name="extrusion" gui-text="Extrusion-Syntax" xml:lang="de">
-    <param xml:space="preserve" type="description" name="extrusion_1" xml:lang="de">Die Höhe der Extrusion und andere Einstellungen können über die Beschreibung (description) der SVG-Objekte, deren Beschriftung/Name (label) oder Kennung (id) festgelegt werden. Die Namen aller Objekte sind im Menü 'Objekt->Objekte ...' in der Spalte 'Name' editierbar. - Die Beschreibung eines einzelnen aktivierten Objekts ist als Freitext editierbar im Menü 'Objekt->Objekteigenschaften... ' (Umschalt-Strg-O). Ebenso Beschriftung (anderes Wort für Name) und die Kennung.
+    <param xml:space="preserve" type="description" name="extrusion_1" xml:lang="de">Die Höhe und andere Einstellungen können über die Beschreibung (description) der SVG-Objekte, deren Beschriftung/Name (label) oder Kennung (id) festgelegt werden. 'Objekt-&gt;Objekte ...' zeigt alle Objekte im Überblick, 'Objekt-&gt;Objekteigenschaften...' (Umschalt-Strg-O) zeigt die Details eines ausgewählten Objekts.
 
-Kennung, Beschriftung/Name eines Objekts können nur die Höhenangabe enthalten. Eine Höhenangabe in Beschriftung/Kennung überschreibt eine in der Kennung.
+Endet die ID eines Objektes auf ..._XXX_mm, dann ist XXX die
+Dezimalzahl für die Höhe. Ein . oder _ kann als Trennzeichen
+für Nachkommastellen verwendet werden.  In der ID werden
+Leerzeichen oder Komma beim Speichern durch _ ersetzt.
 
-Endet die ID eines Objektes auf ..._XXX_mm, dann wird XXX 
-als Dezimalzahl für die Höhe interpretiert. Ein . oder _ kann 
-als Trennzeichen für Nachkommastellen verwendet werden.
-In der ID werden alle Leerzeichen oder Kommata beim speicher
-durch _ ersetzt.
-
-Wird der Höhenangabe der Buchstabe 'a' vorangestellt, so ist das
-Objekt "Antimaterie". D.h. es wird von allen normalen Objekten 
-weggeschnitten (subtrahiert).
+Wird der Höhenangabe der Buchstabe 'a' vorangestellt, so ist
+das Objekt "Antimaterie". D.h. es wird von allen normalen
+Objekten weggeschnitten (subtrahiert).
     </param>
     <param type="description" name="extrusion_2" appearance="header" xml:lang="de">Syntax in der Objekteigenschaft Beschreibung</param>
     <param xml:space="preserve" type="description" name="extrusion_3" xml:lang="de">Height: 10 mm        oder        Height: a12.3 mm
-  Höhe der linearen Extrusion des Objekts. Die Höhe zeigt immer 'nach oben', auch für "Antimaterie".
+  Höhe der linearen Extrusion des Objekts. Die Höhe zeigt
+  nach oben, auch für "Antimaterie".
 
 Raise: 4.5 mm
   Hebt das Objekt an, um Balkone (oder Fenster) zu erzeugen.
 
 Scale: 90 %           oder           Scale: 120,60 %
-  Verjüngt oder verbreitert ein ein Objekt mit zunehmender Höhe.
-  Die Grundfläche bleibt stets wie gezeichnet, die obere Fläche 
-  wird prozentual skaliert. Werden zwei Werte (mit Komma getrennt) 
-  angegeben, so kann entlang der X-Achse und Y-Achse unterschiedlich
-  skaliert werden.
+  Verjüngt oder verbreitert ein ein Objekt mit zunehmender
+  Höhe. Die Grundfläche bleibt stets wie gezeichnet, die obere
+  Fläche wird prozentual skaliert. Werden zwei Werte (mit
+  Komma getrennt) angegeben, so kann entlang der X-Achse
+  und Y-Achse unterschiedlich skaliert werden.
 
-Anstelle von Objekten, können alle Parameter auch für ganze Objektgruppen
-angegeben werden. Parameter in Objekten überschreiben Gruppenparameter.
+Anstelle von Objekten, können alle Parameter auch für ganze
+Objektgruppen angegeben werden. Parameter in Objekten
+überschreiben Gruppenparameter.
 </param>
   </page>
 
   <page name="info" gui-text="Über..." xml:lang="de">
     <param xml:space="preserve" type="description" name="aboutpage">
-Diese Erweiterung konvertiert Inkscape Pfade in 
-extrudierte Polygone in OpenSCAD. Manche Inkscape 
-Objekte (Text!) müssen mit dem Menü-Eintrag "Pfad &gt; Objekt 
+Diese Erweiterung konvertiert Inkscape Pfade in
+extrudierte Polygone in OpenSCAD. Manche Inkscape
+Objekte (Text!) müssen mit dem Menü-Eintrag "Pfad &gt; Objekt
 in Pfad umwandeln" vorbereitet werden.
 
 Inkscape verwendet Pixel (px) als interne Masseinheit.
