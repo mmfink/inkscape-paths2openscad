@@ -12,16 +12,18 @@
 
 <param name="tab" type="notebook">
   <page name="splash" _gui-text="Paths to OpenSCAD">
-    <param name="fname" type="string" _gui-text="Output file">~/inkscape.scad</param>
+    <param name="fname" type="string" _gui-text="Output file">{NAME}.scad</param>
+    <_param name="fname_help" type="description">Use '{NAME}.scad' here to use the name from svg.</_param>
+
     <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height [mm]">5.0</param>
-    <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from description).</_param>
+    <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from an svg object).</_param>
 
     <param name="parsedesc" type="boolean" _gui-text="Description parsing">true</param>
-    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale for a specific object from its description or ID. See the Extrusion Syntax tab for details.</_param>
+    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale per svg object from its description or ID. See the Extrusion Syntax tab for details.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <param name="scadview" type="boolean" _gui-text="View in OpenSCAD">false</param>
-    <_param name="scadview_help" type="description">Start OpenSCAD to view the 3D Model.</_param>
+    <_param name="scadview_help" type="description">Start OpenSCAD to view the 3D-model.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <param name="scad2stl" type="boolean" _gui-text="Convert to STL">false</param>
@@ -31,11 +33,11 @@
     <param name="stlpost" type="boolean" _gui-text="STL postprocessing">false</param>
     <_param name="stlpost_help" type="description">Start e.g. a slicer after converting to STL. See the Commands tab for details.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
-
   </page>
+
   <page name="tuning" _gui-text="Tuning">
     <param name="smoothness" type="float" min="0.0001" max="5" _gui-text="Smoothing">0.2</param>
-    <_param name="smoothness_help" type="description">Used when rendering curves. Smaller values are smoother.
+    <_param name="smoothness_help" type="description">Used when rendering curves. Smaller values are smoother. Range: 0.0001 to 5
     </_param>
     <_param name="outline_header" type="description" appearance="header">Outline Mode</_param>
     <_param name="outline_help" type="description">Objects are extruded into 3D either in normal mode, or in outline mode. Normally the filled surface of a closed object is extruded without adding any line width. Lines that are not a closed loop and objects with no fill are rendered in outline mode.
@@ -49,31 +51,33 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
     </param>
     <param name="force_line" type="boolean" _gui-text="Force outline mode, ignore fill">False</param>
     <_param name="spacer" type="description"><!-- --></_param>
-
   </page>
-  <page name="commands" _gui-text="Commands">
 
-    <_param name="commands_help" type="description">As shipped, the commands work with Linux. Windows and Mac users may have to use absolute paths and other options. Use '{SCAD}' for the OpenSCAD input as specified in the main tab. Use '{STL}' for an STL output file in the same folder with the same name except for a .stl suffix.</_param>
+  <page name="commands" _gui-text="Commands">
+    <_param name="commands_help" type="description">Placeholders: You can use '{NAME}.scad' for the OpenSCAD file to read as specified as 'Output file' in the main tab. You can use '{NAME}.stl' for an STL file to write. Beware, Windows and Mac users: The shipped defaults are written for Linux. Adjust program paths and options as needed.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
-    <param name="scadviewcmd" type="string" _gui-text="View in OpenSCAD: ">openscad '{SCAD}'</param>
-    <_param name="scadviewcmd_help" type="description">Started non-blocking, if not already running. A running OpenSCAD picks up changed contents automatically.</_param>
+    <param name="scadviewcmd" type="string" _gui-text="View in OpenSCAD: ">openscad '{NAME}.scad'</param>
+    <_param name="scadviewcmd_help" type="description">Is only started no command of the same name is running. Always started non-blocking. A running OpenSCAD automatically picks up changed file contents. Defaults:</_param>
+    <_param name="scadviewcmd_default_linux" type="Linux: openscad '{NAME}.scad'</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py -->
-    <param name="scad2stlcmd" type="string" _gui-text="Convert to STL: ">openscad '{SCAD}' -o '{STL}'</param>
+    <param name="scad2stlcmd" type="string" _gui-text="Convert to STL: ">openscad '{NAME}.scad' -o '{NAME}.stl'</param>
     <_param name="stlpostcmd_help" type="description">Automatically run, when STL postprocessing is requested.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_STL_POSTPROCESSING in paths2openscad.py -->
-    <param name="stlpostcmd" type="string" _gui-text="STL postprocessing: ">cura '{STL}' &amp;</param>
+    <param name="stlpostcmd" type="string" _gui-text="STL postprocessing: ">cura '{NAME}.stl' &amp;</param>
     <_param name="stlpostcmd_help" type="description">Append an '&amp;' for non-blocking.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
-
   </page>
+
   <page name="extrusion" _gui-text="Extrusion Syntax">
-    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters can be read from an object's description or ID.
+    <_param name="extrusion_1" type="description" xml:space="preserve">Extrusion height and other parameters can be defined through an svg object's description label or id. The labels of all objects can be edited in the column 'Label' of the menu 'Object->Objects ...' - The description of one single active object is editable as free text in the menu 'Object->Object Properties ...' (Shift-Ctrl-O). The ID and Label are also editable there.
+
+Label and id can specify a height. A height in the label overwrites a height in the id.
 
 If an object's ID is in either name_XXX_mm or name_XXXmm
 format, then XXX is translated into height in millimeters.
@@ -92,33 +96,28 @@ from all normal objects.
 Raise: 4.5 mm
   Move an object upwards to create a balcony (or window).
 
-Scale: 90 %           or           Scale: 90,60 %
-  Taper the object along its height. The top surface is scaled to
-  this value. An optional second value specifies a different
-  scaling along the Y axis.
+Scale: 90 %           or           Scale: 120,60 %
+  Taper the object along its height. The bottom surface always 
+  is as drawn, but the top surface is scaled to this value.
+  If two values are given (separated by Komma), different scaling
+  applies along X- and Y-axis.
 
 All parameters can also be specified in enclosing groups.
 Parameters in the objects take precedence over groups.</_param>
   </page>
+
   <page name="info" _gui-text="About...">
     <_param name="aboutpage" type="description" xml:space="preserve">
 This extension converts Inkscape paths to
 extruded polygons in OpenSCAD.  Before
-using, first convert objects to paths
-with the "Path &gt; Object to Path"
-menu item.
-
-Note that the paths must be polygonal.
-Non-polygonal paths will not render well
-in OpenSCAD.  Thus, while you can convert
-text to a path, letters with closed loops
-may not appear as you expect in OpenSCAD
-(e.g., the letter "o").
+using, some objects must firat be converted to paths
+with the "Path &gt; Object to Path" menu item.
 
 Inkscape's units of pixels are converted
-to millimeters using the SVG Standard's
-definition of 96 pixels = 1 inch
-(before inkscape 0.92 the definition was 90 dpi)
+to millimeters using the SVG standard's
+definition of 96 px = 1 inch = 25.4 mm.
+(Before inkscape 0.92 the standard was 90 px per inch, 
+Adobe products often use 75 px per inch)
 
 v0.19
 Dan Newman (dan newman @ mtbaldy us)
@@ -127,7 +126,7 @@ Juergen Weigert (juergen @ fabmail org)
 
 Find updates at https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
-<!-- keep the version numnber in sync with paths2openscad.py header comments -->
+<!-- keep the version numnber in sync with paths2openscad.py header comments and translated copies -->
 </_param>
   </page>
 </param>

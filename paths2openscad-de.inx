@@ -12,16 +12,18 @@
 
 <param type="notebook" name="tab">
   <page name="splash" gui-text="Pfade nach OpenSCAD" xml:lang="de">
-    <param type="string" name="fname" gui-text="Ausgabedatei" xml:lang="de">~/inkscape.scad</param>
+    <param type="string" name="fname" gui-text="Ausgabedatei" xml:lang="de">{NAME}.scad</param>
+    <_param name="fname_help" type="description" xml:lang="de">Mit '{NAME}.scad' wird der Name vom svg übernommen.</_param>
+
     <param type="float" precision="2" name="height" min="0" max="1000" gui-text="Höhe [mm]" xml:lang="de">5.0</param>
-    <param type="description" name="height_help" xml:lang="de">Vorgegebene Höhe der 3D-Extrusion (wenn keine Höhe in der Object-Beschreibung steht).</param>
+    <param type="description" name="height_help" xml:lang="de">Vorgegebene Höhe der 3D-Extrusion (wenn keine Höhe im SVG-Objekt steht).</param>
 
     <param type="boolean" name="parsedesc" gui-text="Beschreibung Auslesen" xml:lang="de">true</param>
-    <param type="description" name="parsedesc_help" xml:lang="de">Lese die extrudierte Höhe, Boden und Skalierung pro Objekt aus dessen Beschreibung oder ID. Siehe auch den Reiter Extrusion-Syntax.</param>
+    <param type="description" name="parsedesc_help" xml:lang="de">Lese die extrudierte Höhe, Boden und Skalierung pro SVG-Objekt aus dessen Beschreibung oder ID. Siehe auch den Reiter Extrusion-Syntax.</param>
     <param type="description" name="spacer"><!-- --></param>
 
     <param type="boolean" name="scadview" gui-text="Ansicht mit OpenSCAD" xml:lang="de">false</param>
-    <param type="description" name="scadview_help" xml:lang="de">Starte OpenSCAD, um das 3D Modell zu sehen.</param>
+    <param type="description" name="scadview_help" xml:lang="de">Starte OpenSCAD, um das 3D-Modell zu sehen.</param>
     <param type="description" name="spacer"><!-- --></param>
 
     <param type="boolean" name="scad2stl" gui-text="Nach STL umwandeln" xml:lang="de">false</param>
@@ -31,100 +33,99 @@
     <param type="boolean" name="stlpost" gui-text="STL Nachbearbeitung" xml:lang="de">false</param>
     <param type="description" name="stlpost_help" xml:lang="de">Starte beispielsweise einen 'slicer' nach der STL-Konvertierung. Siehe auch den Reiter Kommandos.</param>
     <param type="description" name="spacer"><!-- --></param>
-
   </page>
+
   <page name="tuning" gui-text="Feinheiten" xml:lang="de">
     <param type="float" name="smoothness" min="0.0001" max="5" gui-text="Glättung" xml:lang="de">0.2</param>
-    <param type="description" name="smoothness_help" xml:lang="de">Wird verwendet, wenn Kurven dargestellt werden. Kleinere Werte sind glatter.</param>
+    <param type="description" name="smoothness_help" xml:lang="de">Wird verwendet, wenn Kurven dargestellt werden. Kleinere Werte sind glatter. Bereich: 0.0001 bis 5</param>
     <param type="description" name="outline_header" appearance="header" xml:lang="de">Umrisslinien-Modus</param>
-    <param type="description" name="outline_help" xml:lang="de">Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. Normalerweise werden gefüllte Flächen von geschlossenen Objekten extrudiert, die Dicke der Randlinie wird dabei nicht hinzugerechnet. Offene Linienzüge oder Objekte ohen Füllung werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus nicht beachtet.</param>
+    <param type="description" name="outline_help" xml:lang="de">Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. Normalerweise werden gefüllte Flächen von geschlossenen Objekten extrudiert, die Dicke der Randlinie wird dabei nicht hinzugerechnet. Offene Linienzüge oder Objekte ohne Füllung werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus nicht beachtet.</param>
     <param type="float" name="min_line_width" min="0.1" max="10" gui-text="Minimale Linienbreite [mm]" xml:lang="de">1.0</param>
     <param type="optiongroup" name="line_fn" appearance="minimal" gui-text="Genauigkeit der Linienbreite ($fn)" xml:lang="de">
-      <option value="4">Rough (fast)</option>
-      <option value="8">Medium (slow)</option>
-      <option value="16">Fine (very slow)</option>
+      <option value="4" xml:lang="de">Grob (fast)</option>
+      <option value="8" xml:lang="de">Mittel (slow)</option>
+      <option value="16" xml:lang="de">Fein (very slow)</option>
     </param>
     <param type="boolean" name="force_line" gui-text="Umrisslinien-Modus immer verwenden; Füllungen werden ignoriert" xml:lang="de">False</param>
     <param type="description" name="spacer"><!-- --></param>
-
   </page>
+
   <page name="commands" gui-text="Kommandos" xml:lang="de">
-
-    <param type="description" name="commands_help" xml:lang="de">Die Voreinstellungen dieser Kommandos funktionieren unter Linux. Windows und Mac Benutzer müssen eventuell vollständige Pfade und andere Optionen benutzen. Platzhalter: '{SCAD}' steht für die OpenSCAD Datei wie im ersten Reiter angegeben. '{STL}' steht für eine Ausgabedatei im gleichen Verzeichnis  und mit dem gleichen Namen aber mit .stl Endung.</param>
+    <param type="description" name="commands_help" xml:lang="de">Platzhalter: '{NAME}.scad' steht für die OpenSCAD Datei wie im ersten Reiter als 'Ausgabedatei' angegeben. '{NAME}.stl' kann für eine zu schreibende STL Datei verwendet werden. Warnung, Windows und Mac Benutzer: Die Voreinstellungen sind für Linux. Die Pfade der Programme und deren Optione sind eventuell anzupassen.</param>
     <param type="description" name="spacer"><!-- --></param>
 
-    
-    <param type="string" name="scadviewcmd" gui-text="Ansicht mit OpenSCAD: " xml:lang="de">openscad '{SCAD}'</param>
-    <param type="description" name="scadviewcmd_help" xml:lang="de">Wird nicht-blockierend gestartet, falls es nicht bereits läuft. Ein laufendes OpenSCAD greift geänderte Inhalte automatisch auf.</param>
+    <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
+    <param type="string" name="scadviewcmd" gui-text="Ansicht mit OpenSCAD: " xml:lang="de">openscad '{NAME}.scad'</param>
+    <param type="description" name="scadviewcmd_help" xml:lang="de">Wird nur gestartet falls ein Kommando gleichen Namens nicht bereits läuft. Wird nicht-blockierend gestarted. Ein laufendes OpenSCAD greift geänderte Datei-Inhalte automatisch auf.</param>
+    <param type="description" name="scadviewcmd_default_linux" xml:lang="de">Linux: openscad '{NAME}.scad'</param>
     <param type="description" name="spacer"><!-- --></param>
 
-    
-    <param type="string" name="scad2stlcmd" gui-text="Nach STL umwandeln: " xml:lang="de">openscad '{SCAD}' -o '{STL}'</param>
+    <!-- CAUTION: keep this command in sync with the default INX_SCAD2STL in paths2openscad.py -->
+    <param type="string" name="scad2stlcmd" gui-text="Nach STL umwandeln: " xml:lang="de">openscad '{NAME}.scad' -o '{NAME}.stl'</param>
     <param type="description" name="stlpostcmd_help" xml:lang="de">Wird automatisch ausgeführt, wenn STL Nachbearbeitung angefordert ist.</param>
     <param type="description" name="spacer"><!-- --></param>
 
-    
-    <param type="string" name="stlpostcmd" gui-text="STL Nachbearbeitung: " xml:lang="de">cura '{STL}' &amp;</param>
+    <!-- CAUTION: keep this command in sync with the default INX_STL_POSTPROCESSING in paths2openscad.py -->
+    <param type="string" name="stlpostcmd" gui-text="STL Nachbearbeitung: " xml:lang="de">cura '{NAME}.stl' &amp;</param>
     <param type="description" name="stlpostcmd_help" xml:lang="de">Ein '&amp;' kann angehängt werden, um nicht-blockierend zu starten.</param>
     <param type="description" name="spacer"><!-- --></param>
-
   </page>
+
   <page name="extrusion" gui-text="Extrusion-Syntax" xml:lang="de">
-    <param xml:space="preserve" type="description" name="extrusion_1">Extrusion height and other parameters can be read from an object's description or ID.
+    <param xml:space="preserve" type="description" name="extrusion_1" xml:lang="de">Die Höhe der Extrusion und andere Einstellungen können über die Beschreibung (description) der SVG-Objekte, deren Beschriftung/Name (label) oder Kennung (id) festgelegt werden. Die Namen aller Objekte sind im Menü 'Objekt->Objekte ...' in der Spalte 'Name' editierbar. - Die Beschreibung eines einzelnen aktivierten Objekts ist als Freitext editierbar im Menü 'Objekt->Objekteigenschaften... ' (Umschalt-Strg-O). Ebenso Beschriftung (anderes Wort für Name) und die Kennung.
 
-If an object's ID is in either name_XXX_mm or name_XXXmm
-format, then XXX is translated into height in millimeters.
-Use . or _ as separator for a decimal number.
-Note that all whitespace or comma are saved as '_' in ID.
+Kennung, Beschriftung/Name eines Objekts können nur die Höhenangabe enthalten. Eine Höhenangabe in Beschriftung/Kennung überschreibt eine in der Kennung.
 
-If the height is prefixed with a letter 'a', the
-object is "anti-matter", it is cut away (subtracted)
-from all normal objects.
+Endet die ID eines Objektes auf ..._XXX_mm, dann wird XXX 
+als Dezimalzahl für die Höhe interpretiert. Ein . oder _ kann 
+als Trennzeichen für Nachkommastellen verwendet werden.
+In der ID werden alle Leerzeichen oder Kommata beim speicher
+durch _ ersetzt.
+
+Wird der Höhenangabe der Buchstabe 'a' vorangestellt, so ist das
+Objekt "Antimaterie". D.h. es wird von allen normalen Objekten 
+weggeschnitten (subtrahiert).
     </param>
     <param type="description" name="extrusion_2" appearance="header" xml:lang="de">Syntax in der Objekteigenschaft Beschreibung</param>
-    <param xml:space="preserve" type="description" name="extrusion_3">Height: 10 mm        or        Height: a12.3 mm
-  Linear extrusion height of the object. Note that the
-  height always counts upwards, even for "anti-matter".
+    <param xml:space="preserve" type="description" name="extrusion_3" xml:lang="de">Height: 10 mm        oder        Height: a12.3 mm
+  Höhe der linearen Extrusion des Objekts. Die Höhe zeigt immer 'nach oben', auch für "Antimaterie".
 
 Raise: 4.5 mm
-  Move an object upwards to create a balcony (or window).
+  Hebt das Objekt an, um Balkone (oder Fenster) zu erzeugen.
 
-Scale: 90 %           or           Scale: 90,60 %
-  Taper the object along its height. The top surface is scaled to
-  this value. An optional second value specifies a different
-  scaling along the Y axis.
+Scale: 90 %           oder           Scale: 120,60 %
+  Verjüngt oder verbreitert ein ein Objekt mit zunehmender Höhe.
+  Die Grundfläche bleibt stets wie gezeichnet, die obere Fläche 
+  wird prozentual skaliert. Werden zwei Werte (mit Komma getrennt) 
+  angegeben, so kann entlang der X-Achse und Y-Achse unterschiedlich
+  skaliert werden.
 
-All parameters can also be specified in enclosing groups.
-Parameters in the objects take precedence over groups.</param>
+Anstelle von Objekten, können alle Parameter auch für ganze Objektgruppen
+angegeben werden. Parameter in Objekten überschreiben Gruppenparameter.
+</param>
   </page>
+
   <page name="info" gui-text="Über..." xml:lang="de">
     <param xml:space="preserve" type="description" name="aboutpage">
-This extension converts Inkscape paths to
-extruded polygons in OpenSCAD.  Before
-using, first convert objects to paths
-with the "Path &gt; Object to Path"
-menu item.
+Diese Erweiterung konvertiert Inkscape Pfade in 
+extrudierte Polygone in OpenSCAD. Manche Inkscape 
+Objekte (Text!) müssen mit dem Menü-Eintrag "Pfad &gt; Objekt 
+in Pfad umwandeln" vorbereitet werden.
 
-Note that the paths must be polygonal.
-Non-polygonal paths will not render well
-in OpenSCAD.  Thus, while you can convert
-text to a path, letters with closed loops
-may not appear as you expect in OpenSCAD
-(e.g., the letter "o").
+Inkscape verwendet Pixel (px) als interne Masseinheit.
+Diese werden entsprechend des SVG Standards in Millimeter
+umgerechnet: 96 px = 1 inch = 25.4 mm.
+(Vor inkscape 0.92 war der Standard 90 px pro inch,
+Adobe Produkte verwenden oft 75 px pro inch)
 
-Inkscape's units of pixels are converted
-to millimeters using the SVG Standard's
-definition of 96 pixels = 1 inch
-(before inkscape 0.92 the definition was 90 dpi)
-
-v0.18
+v0.19
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
 
-Find updates at https://github.com/fablabnbg/inkscape-paths2openscad/releases
+Aktualisierungen siehe https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
-
+<!-- keep the version numnber in sync with paths2openscad.py header comments and translated copies -->
 </param>
   </page>
 </param>

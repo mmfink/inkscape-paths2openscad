@@ -102,9 +102,9 @@ RE_AUTO_RAISE_DESC  = re.compile(r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?m
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
-INX_SCADVIEW           = os.getenv('INX_SCADVIEW',           "openscad '{SCAD}'")
-INX_SCAD2STL           = os.getenv('INX_SCAD2STL',           "openscad '{SCAD}' -o '{STL}'")
-INX_STL_POSTPROCESSING = os.getenv('INX_STL_POSTPROCESSING', "cura '{STL}' &")
+INX_SCADVIEW           = os.getenv('INX_SCADVIEW',           "openscad '{NAME}.scad'")
+INX_SCAD2STL           = os.getenv('INX_SCAD2STL',           "openscad '{NAME}.scad' -o '{NAME}.stl'")
+INX_STL_POSTPROCESSING = os.getenv('INX_STL_POSTPROCESSING', "cura '{NAME}.stl' &")
 
 
 def IsProcessRunning(pid):
@@ -383,8 +383,8 @@ class OpenSCAD(inkex.Effect):
             help="Force outline mode.")
 
         self.OptionParser.add_option(
-            '--fname', dest='fname', type='string', default='~/inkscape.scad', action='store',
-            help='openSCAD output file.')
+            '--fname', dest='fname', type='string', default='{NAME}.scad', action='store',
+            help='openSCAD output file derived from the svg file name.')
 
         self.OptionParser.add_option(
             '--parsedesc', dest='parsedesc', type='string', default='true', action='store',
@@ -402,14 +402,14 @@ class OpenSCAD(inkex.Effect):
             help='Also convert to STL ( details see --scad2stlcmd option )')
         self.OptionParser.add_option(
             '--scad2stlcmd', dest='scad2stlcmd', type='string', default=INX_SCAD2STL, action='store',
-            help='Command used to convert to STL. Use {SCAD} for the openSCAD input and {STL} for the STL output file.')
+            help='Command used to convert to STL. You can use {NAME}.scad for the openSCAD file to read and {NAME}.stl for the STL file to write.')
 
         self.OptionParser.add_option(
             '--stlpost', dest='stlpost', type='string', default='false', action='store',
             help='Start e.g. a slicer. This implies the --scad2stl option. ( see --stlpostcmd )')
         self.OptionParser.add_option(
             '--stlpostcmd', dest='stlpostcmd', type='string', default=INX_STL_POSTPROCESSING, action='store',
-            help='Command used for post processing an STL file (typically a slicer). Use {STL} for the STL filename.')
+            help='Command used for post processing an STL file (typically a slicer). You can use {NAME}.stl for the STL file.')
 
         self.dpi = 90.0                # factored out for inkscape-0.92
         self.px_used = False           # raw px unit depends on correct dpi.
@@ -501,6 +501,7 @@ class OpenSCAD(inkex.Effect):
             "{http://www.inkscape.org/namespaces/inkscape}version")
         sodipodi_docname = self.document.getroot().get(
             "{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}docname")
+        self.basename = re.sub(r"\.SVG", "", sodipodi_docname, flags=re.I)
         # a simple 'inkscape:version' does not work here. sigh....
         #
         # BUG:
@@ -1176,11 +1177,17 @@ class OpenSCAD(inkex.Effect):
             if not os.sep in self.options.fname and 'PWD' in os.environ:
                 # current working directory of an extension seems to be the extension dir.
                 # Workaround using PWD, if available...
+                self.options.fname = self.options.fname.format(**{'NAME': self.basename })
                 self.options.fname = os.environ['PWD'] + '/' + self.options.fname
-            full_fname = os.path.expanduser(self.options.fname)
+            scad_fname = os.path.expanduser(self.options.fname)
             if '/' != os.sep:
-                full_fname = full_fname.replace('/', os.sep)
-            self.f = open(full_fname, 'w')
+                scad_fname = scad_fname.replace('/', os.sep)
+            self.f = open(scad_fname, 'w')
+            # for use in options.fname basename is derived from the sodipodi_docname by
+            # stripping the svg extension - or if there is no sodipodi_docname basename is 'inkscape'.
+            # for use in scadviewcmd, scad2stlcmd and stlpostcmd basename is rederived from
+            # options.fname by stripping an scad extension.
+            self.basename = re.sub(r"\.scad", "", scad_fname, flags=re.I)
 
             self.f.write('''
 // Module names are of the form poly_<inkscape-path-id>().  As a result,
@@ -1238,7 +1245,7 @@ fudge = 0.1;
             except:
                 pass
             if not running:
-                cmd = self.options.scadviewcmd.format(**{'SCAD': full_fname})
+                cmd = self.options.scadviewcmd.format(**{'SCAD': scad_fname, 'NAME': self.basename})
                 import subprocess
                 try:
                     tty = open("/dev/tty", "w")
@@ -1254,8 +1261,8 @@ fudge = 0.1;
                     pass
 
         if self.options.scad2stl == 'true' or self.options.stlpost == 'true':
-            stl_fname = re.sub(r"\.SCAD", "", full_fname, flags=re.I) + '.stl'
-            cmd = self.options.scad2stlcmd.format(**{'SCAD': full_fname, 'STL': stl_fname})
+            stl_fname = self.basename + '.stl'
+            cmd = self.options.scad2stlcmd.format(**{'SCAD': scad_fname, 'STL': stl_fname, 'NAME': self.basename})
             try:
                 os.unlink(stl_fname)
             except:
@@ -1283,7 +1290,7 @@ fudge = 0.1;
                     self.options.stlpost = 'false'
 
             if self.options.stlpost == 'true':
-                cmd = self.options.stlpostcmd.format(**{'STL': stl_fname})
+                cmd = self.options.stlpostcmd.format(**{'STL': self.basename+'.stl', 'NAME': self.basename})
                 try:
                     tty = open("/dev/tty", "w")
                 except:
