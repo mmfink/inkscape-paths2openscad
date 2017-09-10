@@ -461,9 +461,9 @@ class OpenSCAD(inkex.Effect):
             # No width specified; assume the default value
             return float(default)
 
-    def LengthWithUnit(self, str, default_unit='px'):
-        v, u = parseLengthWithUnits(str, default_unit)
-        if not v:
+    def LengthWithUnit(self, strn, default_unit='px'):
+        v, u = parseLengthWithUnits(strn, default_unit)
+        if v is None:
             # Couldn't parse the value
             return None
         elif (u == 'mm'):
@@ -501,6 +501,7 @@ class OpenSCAD(inkex.Effect):
             "{http://www.inkscape.org/namespaces/inkscape}version")
         sodipodi_docname = self.document.getroot().get(
             "{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}docname")
+        if sodipodi_docname is None: sodipodi_docname = "inkscape"
         self.basename = re.sub(r"\.SVG", "", sodipodi_docname, flags=re.I)
         # a simple 'inkscape:version' does not work here. sigh....
         #
@@ -724,6 +725,7 @@ class OpenSCAD(inkex.Effect):
 
         style = self.getPathStyle(node)
         stroke_width = style.get('stroke-width', '1')
+
         # FIXME: works with document units == 'mm', but otherwise untested..
         stroke_width_mm = self.LengthWithUnit(stroke_width, default_unit='mm')
         stroke_width_mm = str(stroke_width_mm * 25.4 / self.dpi)  # px to mm
@@ -1076,7 +1078,15 @@ class OpenSCAD(inkex.Effect):
                 pass
 
             elif node.tag == inkex.addNS('text', 'svg') or node.tag == 'text':
-                inkex.errormsg('Warning: unable to draw text, please convert it to a path first.')
+                texts = []
+                plaintext = ''
+                for tnode in node.iterfind('.//'): # all subtree
+                    if tnode is not None and tnode.text is not None:
+                        texts.append(tnode.text)
+                if len(texts):
+                    plaintext = "', '".join(texts).encode('latin-1')
+                    inkex.errormsg('Warning: text "%s"' % plaintext)
+                    inkex.errormsg('Warning: unable to draw text, please convert it to a path first.')
                 pass
 
             elif node.tag == inkex.addNS('title', 'svg') or node.tag == 'title':
