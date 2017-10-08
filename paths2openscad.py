@@ -403,7 +403,8 @@ class OpenSCAD(inkex.Effect):
             help='Also convert to STL ( details see --scad2stlcmd option )')
         self.OptionParser.add_option(
             '--scad2stlcmd', dest='scad2stlcmd', type='string', default=INX_SCAD2STL, action='store',
-            help='Command used to convert to STL. You can use {NAME}.scad for the openSCAD file to read and {NAME}.stl for the STL file to write.')
+            help='Command used to convert to STL. You can use {NAME}.scad for the openSCAD file to read and ' +
+                 '{NAME}.stl for the STL file to write.')
 
         self.OptionParser.add_option(
             '--stlpost', dest='stlpost', type='string', default='false', action='store',
@@ -1175,10 +1176,10 @@ class OpenSCAD(inkex.Effect):
 
         # Determine which polygons lie entirely within other polygons
         try:
-            if not os.sep in self.options.fname and 'PWD' in os.environ:
+            if os.sep not in self.options.fname and 'PWD' in os.environ:
                 # current working directory of an extension seems to be the extension dir.
                 # Workaround using PWD, if available...
-                self.options.fname = self.options.fname.format(**{'NAME': self.basename })
+                self.options.fname = self.options.fname.format(**{'NAME': self.basename})
                 self.options.fname = os.environ['PWD'] + '/' + self.options.fname
             scad_fname = os.path.expanduser(self.options.fname)
             if '/' != os.sep:
@@ -1291,7 +1292,7 @@ fudge = 0.1;
                     self.options.stlpost = 'false'
 
             if self.options.stlpost == 'true':
-                cmd = self.options.stlpostcmd.format(**{'STL': self.basename+'.stl', 'NAME': self.basename})
+                cmd = self.options.stlpostcmd.format(**{'STL': self.basename + '.stl', 'NAME': self.basename})
                 try:
                     tty = open("/dev/tty", "w")
                 except:
