@@ -90,6 +90,7 @@ import bezmisc
 import re
 import string
 import tempfile
+import gettext
 
 DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
