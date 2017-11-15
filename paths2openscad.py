@@ -507,7 +507,8 @@ class OpenSCAD(inkex.Effect):
             "{http://www.inkscape.org/namespaces/inkscape}version")
         sodipodi_docname = self.document.getroot().get(
             "{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}docname")
-        if sodipodi_docname is None: sodipodi_docname = "inkscape"
+        if sodipodi_docname is None:
+            sodipodi_docname = "inkscape"
         self.basename = re.sub(r"\.SVG", "", sodipodi_docname, flags=re.I)
         # a simple 'inkscape:version' does not work here. sigh....
         #
@@ -1090,7 +1091,7 @@ class OpenSCAD(inkex.Effect):
             elif node.tag == inkex.addNS('text', 'svg') or node.tag == 'text':
                 texts = []
                 plaintext = ''
-                for tnode in node.iterfind('.//'): # all subtree
+                for tnode in node.iterfind('.//'):  # all subtree
                     if tnode is not None and tnode.text is not None:
                         texts.append(tnode.text)
                 if len(texts):
