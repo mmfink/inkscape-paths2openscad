@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-
-# openscad.py
-
+#
+# paths2openscad.py
+#
 # This is an Inkscape extension to output paths to extruded OpenSCAD polygons
 # The Inkscape objects must first be converted to paths (Path > Object to
 # Path). Some paths may not work well -- the paths have to be polygons.  As
@@ -61,6 +61,10 @@
 #
 # 2017-08-10, juergen@fabmail.org
 #   0.19 fix style="" elements.
+#
+# 2017-11-14, juergen@fabmail.org
+#   0.20 do not traverse into objects with style="display:none"
+#       some precondition checks had 'pass' but should have 'continue'.
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
@@ -880,7 +884,11 @@ class OpenSCAD(inkex.Effect):
             if v == 'inherit':
                 v = parent_visibility
             if v == 'hidden' or v == 'collapse':
-                pass
+                continue
+
+            s = node.get('style', '')
+            if s == 'display:none':
+                continue
 
             # First apply the current matrix transform to this node's tranform
             matNew = simpletransform.composeTransform(
@@ -909,7 +917,7 @@ class OpenSCAD(inkex.Effect):
 
                 refid = node.get(inkex.addNS('href', 'xlink'))
                 if not refid:
-                    pass
+                    continue
 
                 # [1:] to ignore leading '#' in reference
                 path = '//*[@id="%s"]' % refid[1:]
@@ -948,7 +956,7 @@ class OpenSCAD(inkex.Effect):
                 x = float(node.get('x'))
                 y = float(node.get('y'))
                 if (not x) or (not y):
-                    pass
+                    continue
                 w = float(node.get('width', '0'))
                 h = float(node.get('height', '0'))
                 a = []
@@ -974,7 +982,7 @@ class OpenSCAD(inkex.Effect):
                 x2 = float(node.get('x2'))
                 y2 = float(node.get('y2'))
                 if (not x1) or (not y1) or (not x2) or (not y2):
-                    pass
+                    continue
                 a = []
                 a.append(['M ', [x1, y1]])
                 a.append([' L ', [x2, y2]])
@@ -994,7 +1002,7 @@ class OpenSCAD(inkex.Effect):
 
                 pl = node.get('points', '').strip()
                 if pl == '':
-                    pass
+                    continue
 
                 pa = pl.split()
                 d = "".join(["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(0, len(pa))])
@@ -1014,7 +1022,7 @@ class OpenSCAD(inkex.Effect):
 
                 pl = node.get('points', '').strip()
                 if pl == '':
-                    pass
+                    continue
 
                 pa = pl.split()
                 d = "".join(["M " + pa[i] if i == 0 else " L " + pa[i] for i in range(0, len(pa))])
@@ -1048,7 +1056,7 @@ class OpenSCAD(inkex.Effect):
                     rx = float(node.get('r', '0'))
                     ry = rx
                 if rx == 0 or ry == 0:
-                    pass
+                    continue
 
                 cx = float(node.get('cx', '0'))
                 cy = float(node.get('cy', '0'))
@@ -1089,7 +1097,6 @@ class OpenSCAD(inkex.Effect):
                     plaintext = "', '".join(texts).encode('latin-1')
                     inkex.errormsg('Warning: text "%s"' % plaintext)
                     inkex.errormsg('Warning: unable to draw text, please convert it to a path first.')
-                pass
 
             elif node.tag == inkex.addNS('title', 'svg') or node.tag == 'title':
                 pass
@@ -1102,7 +1109,6 @@ class OpenSCAD(inkex.Effect):
                             'Consider using the "Trace bitmap..." tool of the "Path" menu.  Mac users please '
                             'note that some X11 settings may cause cut-and-paste operations to paste in bitmap copies.'))
                     self.warnings['image'] = 1
-                pass
 
             elif node.tag == inkex.addNS('pattern', 'svg') or node.tag == 'pattern':
                 pass
