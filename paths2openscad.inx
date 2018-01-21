@@ -117,7 +117,7 @@ definition of 96 px = 1 inch = 25.4 mm.
 (Before inkscape 0.92 the standard was 90 px per inch,
 Adobe products often use 75 px per inch)
 
-v0.20
+v0.21
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)

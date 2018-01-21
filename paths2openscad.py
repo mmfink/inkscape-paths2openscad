@@ -66,6 +66,9 @@
 #   0.20 do not traverse into objects with style="display:none"
 #       some precondition checks had 'pass' but should have 'continue'.
 #
+# 2018-01-21, juergen@fabmail.org
+#   0.21 start a new openscad instance if the command has changed.
+#
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
@@ -1257,10 +1260,20 @@ fudge = 0.1;
             pidfile = tempfile.gettempdir() + os.sep + "paths2openscad.pid"
             running = False
             try:
-                m = re.match(r"(\d+)", open(pidfile).read())
-                pid = int(m.group(1))
+                m = re.match(r"(\d+)\s+(.*)", open(pidfile).read())
+                oldpid = int(m.group(1))
+                oldcmd = int(m.group(2))
                 # print >> sys.stderr, "pid {1} seen in {0}".format(pidfile, pid)
-                running = IsProcessRunning(pid)
+                if cmd == oldcmd:
+                    # we found a pidfile and the cmd in there is still identical.
+                    # If we change the filename in the inkscape extension gui, the cmd differs, and
+                    # the still running openscad would not pick up our changes.
+                    # If the command is identical, we check if the pid in the pidfile is alive.
+                    # If so, we assume, the still running openscad will pick up the changes.
+                    #
+                    # WARNING: too much magic here. We cannot really test, if the last assumption holds.
+                    # Comment out the next line to always start a new instance of openscad.
+                    running = IsProcessRunning(oldpid)
             except:
                 pass
             if not running:
@@ -1275,9 +1288,16 @@ fudge = 0.1;
                 except OSError as e:
                     raise OSError("%s failed: errno=%d %s" % (cmd, e.errno, e.strerror))
                 try:
-                    open(pidfile, "w").write(str(proc.pid) + "\n")
+                    open(pidfile, "w").write(str(proc.pid) + "\n" + cmd + "\n")
                 except:
                     pass
+            else:
+                ## BUG alert:
+                # If user changes the file viewed in openscad (save with different name, re-open that name
+                #     without closing openscad, again, the still running openscad does not
+                #     pick up the changes. and we have no way to tell the difference if it did.
+                pass
+
 
         if self.options.scad2stl == 'true' or self.options.stlpost == 'true':
             stl_fname = self.basename + '.stl'
@@ -1289,7 +1309,9 @@ fudge = 0.1;
 
             import subprocess
             try:
+                print >> sys.stderr, "fooo"
                 proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                print >> sys.stderr, "bar"
             except OSError as e:
                 raise OSError("{0} failed: errno={1} {2}".format(cmd, e.errno, e.strerror))
             stdout, stderr = proc.communicate()
