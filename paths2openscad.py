@@ -1292,12 +1292,11 @@ fudge = 0.1;
                 except:
                     pass
             else:
-                ## BUG alert:
+                # BUG alert:
                 # If user changes the file viewed in openscad (save with different name, re-open that name
                 #     without closing openscad, again, the still running openscad does not
                 #     pick up the changes. and we have no way to tell the difference if it did.
                 pass
-
 
         if self.options.scad2stl == 'true' or self.options.stlpost == 'true':
             stl_fname = self.basename + '.stl'

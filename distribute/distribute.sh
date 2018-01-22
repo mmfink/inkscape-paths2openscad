@@ -1,4 +1,10 @@
 #!/bin/bash
+echo "Did you run 'make test' (Y/n)?"
+read answer
+test "$answer" = "n" && exit 1
+
+
+
 echo "Determining Version:"
 VERSION=$(sed -ne 's@^v\([a-z0-9\.]*\).*@\1@pi' ../paths2openscad.inx)
 echo "Version is: \"$VERSION\""
