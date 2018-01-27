@@ -8,8 +8,7 @@ requires="openscad, cura | bash"
 
 tmp=../out
 
-[ -d $tmp ] && rm -rf $tmp/*.deb
-mkdir $tmp
+mkdir -p $tmp
 cp description-pak files
 cd files
 fakeroot checkinstall --fstrans --reset-uid --type debian \
@@ -20,5 +19,6 @@ fakeroot checkinstall --fstrans --reset-uid --type debian \
   --requires "'$requires'" make install \
   -e PREFIX=/usr || { echo "error"; exit 1; }
 
-test -f ../$tmp/*.deb && dpkg-deb -c ../$tmp/*.deb
-
+for deb in ../$tmp/*.deb; do
+  test -f $deb && (set -x; dpkg-deb -c $deb)
+done
