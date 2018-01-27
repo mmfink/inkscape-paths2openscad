@@ -69,6 +69,9 @@
 # 2018-01-21, juergen@fabmail.org
 #   0.21 start a new openscad instance if the command has changed.
 #
+# 2018-01-27, juergen@fabmail.org
+#   0.22 command comparison fixed. do not use 0.21 !
+#
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
@@ -1259,11 +1262,13 @@ fudge = 0.1;
         if self.options.scadview == 'true':
             pidfile = tempfile.gettempdir() + os.sep + "paths2openscad.pid"
             running = False
+            cmd = self.options.scadviewcmd.format(**{'SCAD': scad_fname, 'NAME': self.basename})
             try:
                 m = re.match(r"(\d+)\s+(.*)", open(pidfile).read())
                 oldpid = int(m.group(1))
-                oldcmd = int(m.group(2))
-                # print >> sys.stderr, "pid {1} seen in {0}".format(pidfile, pid)
+                oldcmd = m.group(2)
+                # print >> sys.stderr, "pid {1} seen in {0}".format(pidfile, oldpid)
+                # print >> sys.stderr, "cmd {0},  oldcmd {1}".format(cmd, oldcmd)
                 if cmd == oldcmd:
                     # we found a pidfile and the cmd in there is still identical.
                     # If we change the filename in the inkscape extension gui, the cmd differs, and
@@ -1274,10 +1279,10 @@ fudge = 0.1;
                     # WARNING: too much magic here. We cannot really test, if the last assumption holds.
                     # Comment out the next line to always start a new instance of openscad.
                     running = IsProcessRunning(oldpid)
+                    # print >> sys.stderr, "running {0}".format(running)
             except:
                 pass
             if not running:
-                cmd = self.options.scadviewcmd.format(**{'SCAD': scad_fname, 'NAME': self.basename})
                 import subprocess
                 try:
                     tty = open("/dev/tty", "w")
@@ -1308,9 +1313,7 @@ fudge = 0.1;
 
             import subprocess
             try:
-                print >> sys.stderr, "fooo"
                 proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                print >> sys.stderr, "bar"
             except OSError as e:
                 raise OSError("{0} failed: errno={1} {2}".format(cmd, e.errno, e.strerror))
             stdout, stderr = proc.communicate()
