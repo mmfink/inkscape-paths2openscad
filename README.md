@@ -1,6 +1,8 @@
 paths2openscad
 ==============
 
+[![Downloads](https://img.shields.io/github/downloads/fablabnbg/inkscape-paths2openscad/total.svg?maxAge=2592000?style=flat-square)](https://github.com/fablabnbg/inkscape-paths2openscad/releases/latest)
+[![GitHub release](https://img.shields.io/github/release/fablabnbg/inkscape-paths2openscad.svg)](https://github.com/fablabnbg/paths2openscad/releases)
 [![Build Status](https://travis-ci.org/fablabnbg/inkscape-paths2openscad.svg?branch=master)](https://travis-ci.org/fablabnbg/inkscape-paths2openscad)
 
 <img align="right" src="https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png" width="200" />
