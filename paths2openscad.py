@@ -72,6 +72,10 @@
 # 2018-01-27, juergen@fabmail.org
 #   0.22 command comparison fixed. do not use 0.21 !
 #
+# 2018-02-18, juergen@fabmail.org
+#   0.23 fixed rect with x=0 not rendered.
+#        FIXME: should really use inksvg.py here too!
+#
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
