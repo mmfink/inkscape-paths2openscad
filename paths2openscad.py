@@ -962,8 +962,6 @@ class OpenSCAD(inkex.Effect):
                 # Create a path with the outline of the rectangle
                 x = float(node.get('x'))
                 y = float(node.get('y'))
-                if (not x) or (not y):
-                    continue
                 w = float(node.get('width', '0'))
                 h = float(node.get('height', '0'))
                 a = []
