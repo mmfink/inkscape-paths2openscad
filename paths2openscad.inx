@@ -32,6 +32,9 @@
 
     <param name="stlpost" type="boolean" _gui-text="STL postprocessing">false</param>
     <_param name="stlpost_help" type="description">Start e.g. a slicer after converting to STL. See the Commands tab for details.</_param>
+
+    <param name="stlmodule" type="boolean" _gui-text="Only create module">false</param>
+    <_param name="stlmodule_help" type="description">Do not render the object in the scad file, create file suitable for import.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
   </page>
 

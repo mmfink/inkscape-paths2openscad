@@ -32,6 +32,9 @@
 
     <param type="boolean" name="stlpost" gui-text="STL Nachbearbeitung" xml:lang="de">false</param>
     <param type="description" name="stlpost_help" xml:lang="de">Starte beispielsweise einen 'slicer' nach der STL-Konvertierung. Siehe auch den Reiter Kommandos.</param>
+
+    <param name="stlmodule" type="boolean" _gui-text="Erzeuge ein Modul">false</param>
+    <_param name="stlmodule_help" type="description">Rendern Sie das Objekt nicht in der Scad-Datei, erstellen Sie eine für den Import geeignete Datei.</_param>
     <param type="description" name="spacer"><!-- --></param>
   </page>
 
