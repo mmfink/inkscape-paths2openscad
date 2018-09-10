@@ -15,11 +15,11 @@
     <param name="fname" type="string" _gui-text="Output file">{NAME}.scad</param>
     <_param name="fname_help" type="description">Use '{NAME}.scad' here to use the name from svg.</_param>
 
-    <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Height [mm]">5.0</param>
-    <_param name="height_help" type="description">Default 3D extrude height (when no height is parsed from an svg object).</_param>
+    <param name="zsize" type="float" min="0" max="1000" precision="2" _gui-text="Z-Size [mm]">5.0</param>
+    <_param name="zsize_help" type="description">Default 3D extrude length (when no zsize is parsed from an svg object).</_param>
 
     <param name="parsedesc" type="boolean" _gui-text="Description parsing">true</param>
-    <_param name="parsedesc_help" type="description">Read the extruded height, raise, scale per svg object from its description or ID. See the Extrusion Syntax tab for details.</_param>
+    <_param name="parsedesc_help" type="description">Read the extruded zsize, zoffset, scale per svg object from its description or ID. See the Extrusion Syntax tab for details.</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <param name="scadview" type="boolean" _gui-text="View in OpenSCAD">false</param>
@@ -83,27 +83,29 @@ Mac: /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD</_param>
   </page>
 
   <page name="extrusion" _gui-text="Extrusion Syntax">
-    <_param name="extrusion_1" type="description" xml:space="preserve">The height and other parameters can be defined through an svg object's description label or id. The menu 'Object-&gt;Objects ...' shows an overview of all, the menu 'Object-&gt;Object Properties ...' (Shift-Ctrl-O) shows details of one selected object.
+    <_param name="extrusion_1" type="description" xml:space="preserve">The zsize and other parameters can be defined through an svg object's description label or id. The menu 'Object-&gt;Objects ...' shows an overview of all, the menu 'Object-&gt;Object Properties ...' (Shift-Ctrl-O) shows details of one selected object.
 
 If an object's ID is in either name_XXX_mm or name_XXXmm
-format, then XXX is translated into height in millimeters.
+format, then XXX is translated into zsize in millimeters.
 Use . or _ as separator for a decimal number.
 Note that all whitespace or comma are saved as '_' in ID.
 
-If the height is prefixed with a letter 'a', the
+If the zsize is prefixed with a letter 'a', the
 object is "anti-matter", it is cut away (subtracted)
 from all normal objects.
     </_param>
     <_param name="extrusion_2" type="description" appearance="header">Syntax for the object property description</_param>
-    <_param name="extrusion_3" type="description" xml:space="preserve">Height: 10 mm        or        Height: a12.3 mm
-  Linear extrusion height of the object. Note that the
-  height always counts upwards, even for "anti-matter".
+    <_param name="extrusion_3" type="description" xml:space="preserve">Zsize: 10 mm
+  Linear extrusion length of the object. Note that the
+  zsize always counts upwards, even for "anti-matter".
 
-Raise: 4.5 mm
+Antimatter: true
+
+Zoffset: 4.5 mm
   Move an object upwards to create a balcony (or window).
 
 Scale: 90 %           or           Scale: 120,60 %
-  Taper the object along its height. The bottom surface always
+  Taper the object along its zsize. The bottom surface always
   is as drawn, but the top surface is scaled to this value.
   If two values are given (separated by Komma), different scaling
   applies along X- and Y-axis.
@@ -125,7 +127,7 @@ definition of 96 px = 1 inch = 25.4 mm.
 (Before inkscape 0.92 the standard was 90 px per inch,
 Adobe products often use 75 px per inch)
 
-v0.23
+v0.24
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)

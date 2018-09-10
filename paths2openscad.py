@@ -23,7 +23,7 @@
 #   0.12 parse svg width="400mm" correctly. Came out downscaled by 3...
 #
 # 2017-04-08, juergen@fabmail.org
-#   0.13 allow letter 'a' prefix on height values for anti-matter.
+#   0.13 allow letter 'a' prefix on zsize values for anti-matter.
 #        All anti-matter objects are subtracted from all normal objects.
 #        raise: Offset along Z axis, to make cut-outs and balconies.
 #        Refactored object_merge_extrusion_values() from convertPath().
@@ -53,7 +53,7 @@
 #        value for explicit Y scaling. Renamed the autoheight command line
 #        option to 'parsedesc' with default true. Renamed dict auto to
 #        extrusion. Rephrased all prose to refer to extrusion syntax rather
-#        than auto height.
+#        than auto zsize.
 # 2017-06-18, juergen@fabmail.org
 #   0.18 pep8 relaxed. all hard 80 cols line breaks removed.
 #   Refactored the commands into a separate tab in the inx.
@@ -75,6 +75,9 @@
 # 2018-02-18, juergen@fabmail.org
 #   0.23 fixed rect with x=0 not rendered.
 #        FIXME: should really use inksvg.py here too!
+#
+# 2018.09-09, juergen@fabmail.org
+#   0.24 merged module feature, renamed Heigh,Raise to Zsize,Zoffset
 #
 # CAUTION: keep the version numnber in sync with paths2openscad.inx about page
 
@@ -108,12 +111,14 @@ import gettext
 
 DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
-# Parse all these as 56.7 mm height:
+# Parse all these as 56.7 mm zsize:
 #  "path1234_56_7_mm", "pat1234____57.7mm", "path1234_57.7__mm"
-RE_AUTO_HEIGHT_ID   = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
-RE_AUTO_HEIGHT_DESC = re.compile(r"^(?:ht|[Hh]eight):\s*([aA]?\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
-RE_AUTO_SCALE_DESC  = re.compile(r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$", re.MULTILINE)
-RE_AUTO_RAISE_DESC  = re.compile(r"^(?:[Rr]aise|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
+#
+# the verbs Height and Raise are deprecated. Use Zsize and Zoffset instead.
+RE_AUTO_ZSIZE_ID   = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
+RE_AUTO_ZSIZE_DESC = re.compile(r"^(?:[Hh]eight|[Zz]size):\s*([aA]?\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
+RE_AUTO_SCALE_DESC = re.compile(r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$", re.MULTILINE)
+RE_AUTO_ZOFFSET_DESC = re.compile(r"^(?:[Rr]aise|[Zz]offset):\s*(\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
@@ -382,8 +387,8 @@ class OpenSCAD(inkex.Effect):
             help='Curve smoothing (less for more)')
 
         self.OptionParser.add_option(
-            '--height', dest='height', type='string', default='5', action='store',
-            help='Height (mm)')
+            '--zsize', dest='zsize', type='string', default='5', action='store',
+            help='Z-size (mm)')
 
         self.OptionParser.add_option(
             '--min_line_width', dest='min_line_width', type='float', default=float(1), action='store',
@@ -403,7 +408,7 @@ class OpenSCAD(inkex.Effect):
 
         self.OptionParser.add_option(
             '--parsedesc', dest='parsedesc', type='string', default='true', action='store',
-            help='Parse height and other parameters from object descriptions')
+            help='Parse zsize and other parameters from object descriptions')
 
         self.OptionParser.add_option(
             '--scadview', dest='scadview', type='string', default='false', action='store',
@@ -548,7 +553,7 @@ class OpenSCAD(inkex.Effect):
                     # inkex.errormsg("switching to 96 dpi")
 
         # BUGFIX https://github.com/fablabnbg/inkscape-paths2openscad/issues/1
-        # get height and width after dpi. This is needed for e.g. mm units.
+        # get zsize and width after dpi. This is needed for e.g. mm units.
         self.docHeight = self.getLength('height', DEFAULT_HEIGHT)
         self.docWidth = self.getLength('width', DEFAULT_WIDTH)
 
@@ -689,28 +694,28 @@ class OpenSCAD(inkex.Effect):
             # let the node override inherited values
             rawid = node.get('id', '')
             if rawid is not None:
-                height = RE_AUTO_HEIGHT_ID.findall(rawid)
-                if height:
-                    extrusion['height'] = height[-1].replace("_", ".")
+                zsize = RE_AUTO_ZSIZE_ID.findall(rawid)
+                if zsize:
+                    extrusion['zsize'] = zsize[-1].replace("_", ".")
             # let description contents override id contents.
             for tagname in DESC_TAGS:
                 desc_node = node.find("./%s" % tagname)
                 if desc_node is not None:
-                    height = RE_AUTO_HEIGHT_DESC.findall(desc_node.text)
-                    if height:
-                        extrusion['height'] = height[-1]
+                    zsize = RE_AUTO_ZSIZE_DESC.findall(desc_node.text)
+                    if zsize:
+                        extrusion['zsize'] = zsize[-1]
                     zscale = RE_AUTO_SCALE_DESC.findall(desc_node.text)
                     if zscale:
                         if ',' in zscale[-1]:
                             extrusion['scale'] = '[' + zscale[-1] + ']'
                         else:
                             extrusion['scale'] = zscale[-1]
-                    zraise = RE_AUTO_RAISE_DESC.findall(desc_node.text)
-                    if zraise:
-                        extrusion['raise'] = zraise[-1]
-            if extrusion['height'][0] in ('a', 'A'):
+                    zoffset = RE_AUTO_ZOFFSET_DESC.findall(desc_node.text)
+                    if zoffset:
+                        extrusion['zoffset'] = zoffset[-1]
+            if extrusion['zsize'][0] in ('a', 'A'):
                 extrusion['neg'] = True
-                extrusion['height'] = extrusion['height'][1:]
+                extrusion['zsize'] = extrusion['zsize'][1:]
             # END object_merge_extrusion_values
 
         path = self.paths[node]
@@ -822,14 +827,14 @@ class OpenSCAD(inkex.Effect):
         self.f.write('  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n' % (self.dpi, self.dpi))
 
         # And add the call to the call list
-        # Height is set by the overall module parameter
-        # unless an extrusion height is parsed from the description or ID.
-        extrusion = {'height': 'h', 'raise': '0', 'scale': 100.0, 'neg': False}
+        # Z-size is set by the overall module parameter
+        # unless an extrusion zsize is parsed from the description or ID.
+        extrusion = {'zsize': 'h', 'zoffset': '0', 'scale': 100.0, 'neg': False}
         if self.options.parsedesc == 'true':
             object_merge_extrusion_values(extrusion, node)
 
         call_item = 'translate ([0,0,%s]) poly_%s(%s, min_line_mm(%s), %s);\n' % (
-            extrusion['raise'], id, extrusion['height'], stroke_width_mm, extrusion['scale'])
+            extrusion['zoffset'], id, extrusion['zsize'], stroke_width_mm, extrusion['scale'])
 
         if extrusion['neg']:
             self.call_list_neg.append(call_item)
@@ -1232,7 +1237,7 @@ class OpenSCAD(inkex.Effect):
 fudge = 0.1;
 ''')
             # writeout users parameters
-            self.f.write('height = %s;\n' % (self.options.height))
+            self.f.write('zsize = %s;\n' % (self.options.zsize))
             self.f.write('line_fn = %d;\n' % (self.options.line_fn))
             self.f.write('min_line_width = %s;\n' % (self.options.min_line_width))
             self.f.write('function min_line_mm(w) = max(min_line_width, w) * %g/25.4;\n\n' % self.dpi)
@@ -1259,9 +1264,9 @@ fudge = 0.1;
 
             # The module that calls all the other ones.
             if self.options.stlmodule == 'true':
-                self.f.write('}\n\n//%s(height);\n' % (name))
+                self.f.write('}\n\n//%s(zsize);\n' % (name))
             else:
-                self.f.write('}\n\n%s(height);\n' % (name))
+                self.f.write('}\n\n%s(zsize);\n' % (name))
             self.f.close()
 
         except IOError as e:
