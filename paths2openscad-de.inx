@@ -54,7 +54,10 @@
   </page>
 
   <page name="commands" gui-text="Kommandos" xml:lang="de">
-    <param type="description" name="commands_help" xml:lang="de">Platzhalter: '{NAME}.scad' steht für die OpenSCAD Datei wie im ersten Reiter als 'Ausgabedatei' angegeben. '{NAME}.stl' kann für eine zu schreibende STL Datei verwendet werden. Warnung, Windows und Mac Benutzer: Die Voreinstellungen sind für Linux. Die Pfade der Programme und deren Optione sind eventuell anzupassen.</param>
+    <param type="description" name="commands_help" xml:lang="de">Platzhalter: '{NAME}.scad' steht für die OpenSCAD Datei wie im ersten Reiter als 'Ausgabedatei' angegeben. '{NAME}.stl' kann für eine zu schreibende STL Datei verwendet werden.
+    </param>
+    <param name="commands_help_warn" type="description">Warnung, Windows und Mac Benutzer: Die Voreinstellungen sind für Linux.</param>
+    <param name="commands_help_mac" type="description">Mac: /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD</param>
     <param type="description" name="spacer"><!-- --></param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->

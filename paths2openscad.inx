@@ -57,7 +57,12 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
   </page>
 
   <page name="commands" _gui-text="Commands">
-    <_param name="commands_help" type="description">Placeholders: You can use '{NAME}.scad' for the OpenSCAD file to read as specified as 'Output file' in the main tab. You can use '{NAME}.stl' for an STL file to write. Beware, Windows and Mac users: The shipped defaults are written for Linux. Adjust program paths and options as needed.</_param>
+    <_param name="commands_help" type="description">Placeholders: You can use '{NAME}.scad' for the OpenSCAD file to read as specified as 'Output file' in the main tab. You can use '{NAME}.stl' for an STL file to write. 
+    </_param>
+    <_param name="commands_help_warn" type="description">
+Beware, Windows and Mac users: The shipped defaults are for Linux.</_param>
+    <_param name="commands_help_mac" type="description">
+Mac: /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
@@ -107,7 +112,7 @@ All parameters can also be specified in enclosing groups.
 Parameters in the objects take precedence over groups.</_param>
   </page>
 
-  <page name="info" _gui-text="About...">
+  <page name="info" _gui-text="About ...">
     <_param name="aboutpage" type="description" xml:space="preserve">
 This extension converts Inkscape paths to
 extruded polygons in OpenSCAD.  Before
