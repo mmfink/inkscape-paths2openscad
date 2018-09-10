@@ -427,6 +427,10 @@ class OpenSCAD(inkex.Effect):
             '--stlpostcmd', dest='stlpostcmd', type='string', default=INX_STL_POSTPROCESSING, action='store',
             help='Command used for post processing an STL file (typically a slicer). You can use {NAME}.stl for the STL file.')
 
+        self.OptionParser.add_option(
+            '--stlmodule', dest='stlmodule', type='string', default='false', action='store',
+            help='Output configured to comment out final rendering line, to create a module file for import.')
+
         self.dpi = 90.0                # factored out for inkscape-0.92
         self.px_used = False           # raw px unit depends on correct dpi.
         self.cx = float(DEFAULT_WIDTH)  / 2.0
@@ -1254,7 +1258,10 @@ fudge = 0.1;
             self.f.write('    }\n  }\n')
 
             # The module that calls all the other ones.
-            self.f.write('}\n\n%s(height);\n' % (name))
+            if self.options.stlmodule == 'true':
+                self.f.write('}\n\n//%s(height);\n' % (name))
+            else:
+                self.f.write('}\n\n%s(height);\n' % (name))
             self.f.close()
 
         except IOError as e:
