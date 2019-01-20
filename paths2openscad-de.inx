@@ -125,8 +125,8 @@ Aktualisierungen siehe https://github.com/fablabnbg/inkscape-paths2openscad/rele
   <effect needs-live-preview="false">
     <object-type>all</object-type>
     <effects-menu>
-      <!-- <submenu _name="Aus Pfad erzeugen" xml:lang="de"></submenu> -->
-      <submenu _name="Generate from Path"/>
+      <submenu _name="Aus Pfad erzeugen" xml:lang="de"></submenu>
+      <!-- <submenu _name="Generate from Path"     xml:lang="de"/> -->
     </effects-menu>
   </effect>
   <script>
