@@ -3,20 +3,14 @@
   <name xml:lang="de">Pfade nach OpenSCAD</name>
   <id>command.extrude.openscad.de</id>
   <dependency type="extension">org.inkscape.output.svg.inkscape</dependency>
-  <dependency type="executable" location="extensions">paths2openscad.py</dependency>
-  <dependency type="executable" location="extensions">inkex.py</dependency>
-  <dependency type="executable" location="extensions">simpletransform.py</dependency>
-  <dependency type="executable" location="extensions">cubicsuperpath.py</dependency>
-  <dependency type="executable" location="extensions">cspsubdiv.py</dependency>
-  <dependency type="executable" location="extensions">bezmisc.py</dependency>
 
 <param type="notebook" name="tab">
   <page name="splash" gui-text="Pfade nach OpenSCAD" xml:lang="de">
     <param type="string" name="fname" gui-text="Ausgabedatei" xml:lang="de">{NAME}.scad</param>
     <_param name="fname_help" type="description" xml:lang="de">Mit '{NAME}.scad' wird der Name vom svg übernommen.</_param>
 
-    <param type="float" precision="2" name="zsize" min="0" max="1000" gui-text="Höhe [mm]" xml:lang="de">5.0</param>
-    <param type="description" name="zsize_help" xml:lang="de">Vorgegebene Höhe der 3D-Extrusion (wenn keine Höhe im SVG-Objekt steht).</param>
+    <param type="float" precision="2" name="zsize" min="0" max="1000" gui-text="Tiefe (Z) [mm]" xml:lang="de">5.0</param>
+    <param type="description" name="zsize_help" xml:lang="de">Vorgegebene Tiefe der 3D-Extrusion (wenn keine Tiefe 'Zsize' im SVG-Objekt steht).</param>
 
     <param type="boolean" name="parsedesc" gui-text="Beschreibung Auslesen" xml:lang="de">true</param>
     <param type="description" name="parsedesc_help" xml:lang="de">Lese die extrudierte Höhe, Boden und Skalierung pro SVG-Objekt aus dessen Beschreibung oder ID. Siehe auch den Reiter Extrusion-Syntax.</param>
@@ -44,10 +38,11 @@
     <param type="description" name="outline_header" appearance="header" xml:lang="de">Umrisslinien-Modus</param>
     <param type="description" name="outline_help" xml:lang="de">Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. Normalerweise werden gefüllte Flächen von geschlossenen Objekten extrudiert, die Dicke der Randlinie wird dabei nicht hinzugerechnet. Offene Linienzüge oder Objekte ohne Füllung werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus nicht beachtet.</param>
     <param type="float" name="min_line_width" min="0.1" max="10" gui-text="Minimale Linienbreite [mm]" xml:lang="de">1.0</param>
+    <param type="float" name="line_width_scale_perc" min="1" max="10000" gui-text="Skaliere Linienbreite [%]" xml:lang="de">100.0</param>
     <param type="optiongroup" name="line_fn" appearance="minimal" gui-text="Genauigkeit der Linienbreite ($fn)" xml:lang="de">
-      <option value="4" xml:lang="de">Grob (fast)</option>
-      <option value="8" xml:lang="de">Mittel (slow)</option>
-      <option value="16" xml:lang="de">Fein (very slow)</option>
+      <option value="4" xml:lang="de">Grob (schnell)</option>
+      <option value="8" xml:lang="de">Mittel (langsam)</option>
+      <option value="16" xml:lang="de">Fein (sehr langsam)</option>
     </param>
     <param type="boolean" name="force_line" gui-text="Umrisslinien-Modus immer verwenden; Füllungen werden ignoriert" xml:lang="de">False</param>
     <param type="description" name="spacer"><!-- --></param>
@@ -78,37 +73,27 @@
   </page>
 
   <page name="extrusion" gui-text="Extrusion-Syntax" xml:lang="de">
-    <param xml:space="preserve" type="description" name="extrusion_1" xml:lang="de">Die Höhe und andere Einstellungen können über die Beschreibung (description) der SVG-Objekte, deren Beschriftung/Name (label) oder Kennung (id) festgelegt werden. 'Objekt-&gt;Objekte ...' zeigt alle Objekte im Überblick, 'Objekt-&gt;Objekteigenschaften...' (Umschalt-Strg-O) zeigt die Details eines ausgewählten Objekts.
-
-Endet die ID eines Objektes auf ..._XXX_mm, dann ist XXX die
-Dezimalzahl für die Höhe. Ein . oder _ kann als Trennzeichen
-für Nachkommastellen verwendet werden.  In der ID werden
-Leerzeichen oder Komma beim Speichern durch _ ersetzt.
-
-Wird der Höhenangabe der Buchstabe 'a' vorangestellt, so ist
-das Objekt "Antimaterie". D.h. es wird von allen normalen
-Objekten weggeschnitten (subtrahiert).
+    <param xml:space="preserve" type="description" name="extrusion_1" xml:lang="de">Die Tiefe (Z-Achse) und andere Einstellungen können über die Beschreibung (description) der SVG-Objekte festgelegt werden. 'Objekt-&gt;Objekteigenschaften...' (Umschalt-Strg-O) zeigt die Details eines ausgewählten Objekts.
     </param>
     <param type="description" name="extrusion_2" appearance="header" xml:lang="de">Syntax in der Objekteigenschaft Beschreibung</param>
-    <param xml:space="preserve" type="description" name="extrusion_3" xml:lang="de">Zsize: 10 mm
-  Länge der linearen Extrusion des Objekts. Die Länge zeigt
-  nach oben, auch für "Antimaterie".
+    <param xml:space="preserve" type="description" name="extrusion_3" xml:lang="de">Depth: 10 mm
+  Länge der linearen Extrusion des Objekts.
 
 Antimatter: true
+  Objekt ist Teil der Differenzmenge, welche von
+  allen anderen Objekten weggeschnitten wird.
 
 Zoffset: 4.5 mm
   Hebt das Objekt an, um Balkone (oder Fenster) zu erzeugen.
 
-Scale: 90 %           oder           Scale: 120,60 %
-  Verjüngt oder verbreitert ein ein Objekt mit zunehmender
-  Höhe. Die Grundfläche bleibt stets wie gezeichnet, die obere
+Taper: 90 %           oder           Taper: 120,60 %
+  Verjüngt oder verbreitert ein ein Objekt entlang der Z-Achse.
+  Die Grundfläche bleibt stets wie gezeichnet, die obere
   Fläche wird prozentual skaliert. Werden zwei Werte (mit
   Komma getrennt) angegeben, so kann entlang der X-Achse
   und Y-Achse unterschiedlich skaliert werden.
 
-Anstelle von Objekten, können alle Parameter auch für ganze
-Objektgruppen angegeben werden. Parameter in Objekten
-überschreiben Gruppenparameter.
+Parameter in Objekten überschreiben Gruppenparameter.
 </param>
   </page>
 
@@ -125,7 +110,7 @@ umgerechnet: 96 px = 1 inch = 25.4 mm.
 (Vor inkscape 0.92 war der Standard 90 px pro inch,
 Adobe Produkte verwenden oft 75 px pro inch)
 
-v0.24
+v0.25
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)
@@ -140,7 +125,8 @@ Aktualisierungen siehe https://github.com/fablabnbg/inkscape-paths2openscad/rele
   <effect needs-live-preview="false">
     <object-type>all</object-type>
     <effects-menu>
-      <submenu name="Aus Pfad erzeugen" xml:lang="de"></submenu>
+      <!-- <submenu _name="Aus Pfad erzeugen" xml:lang="de"></submenu> -->
+      <submenu _name="Generate from Path"/>
     </effects-menu>
   </effect>
   <script>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # paths2openscad.py
 #
@@ -79,7 +79,12 @@
 # 2018.09-09, juergen@fabmail.org
 #   0.24 merged module feature, renamed Heigh,Raise to Zsize,Zoffset
 #
-# CAUTION: keep the version numnber in sync with paths2openscad.inx about page
+# 2019-01-18, juergen@fabmail.org
+#   0.25 Allow Depth,Offset instead of Zsize,Zoffset
+#   Simplify the syntax description page.
+#   Added parameter line_width_scale.
+#
+# CAUTION: keep the version number in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -114,11 +119,11 @@ DEFAULT_HEIGHT = 100
 # Parse all these as 56.7 mm zsize:
 #  "path1234_56_7_mm", "pat1234____57.7mm", "path1234_57.7__mm"
 #
-# the verbs Height and Raise are deprecated. Use Zsize and Zoffset instead.
+# The verbs Height and Raise are deprecated. Use Zsize and Zoffset, (or Depth and Offset) instead.
 RE_AUTO_ZSIZE_ID   = re.compile(r".*?_+([aA]?\d+(?:[_\.]\d+)?)_*mm$")
-RE_AUTO_ZSIZE_DESC = re.compile(r"^(?:[Hh]eight|[Zz]size):\s*([aA]?\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
-RE_AUTO_SCALE_DESC = re.compile(r"^(?:sc|[Ss]cale):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$", re.MULTILINE)
-RE_AUTO_ZOFFSET_DESC = re.compile(r"^(?:[Rr]aise|[Zz]offset):\s*(\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
+RE_AUTO_ZSIZE_DESC = re.compile(r"^(?:[Hh]eight|[Dd]epth|[Zz]-?size):\s*([aA]?\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
+RE_AUTO_SCALE_DESC = re.compile(r"^(?:sc|[Ss]cale|[Tt]aper):\s*(\d+(?:\.\d+)?(?: ?, ?\d+(?:\.\d+)?)?) ?%$", re.MULTILINE)
+RE_AUTO_ZOFFSET_DESC = re.compile(r"^(?:[Rr]aise|[Zz]-?offset|[Oo]ffset):\s*(\d+(?:\.\d+)?) ?mm$", re.MULTILINE)
 DESC_TAGS = ['desc', inkex.addNS('desc', 'svg')]
 
 # CAUTION: keep these defaults in sync with paths2openscad.inx
@@ -387,12 +392,16 @@ class OpenSCAD(inkex.Effect):
             help='Curve smoothing (less for more)')
 
         self.OptionParser.add_option(
-            '--zsize', dest='zsize', type='string', default='5', action='store',
-            help='Z-size (mm)')
+            '--depth', '--zsize', dest='zsize', type='string', default='5', action='store',
+            help='Depth (Z-size) [mm]')
 
         self.OptionParser.add_option(
             '--min_line_width', dest='min_line_width', type='float', default=float(1), action='store',
-            help='Line width for non closed curves (mm)')
+            help='Line width for non closed curves [mm]')
+
+        self.OptionParser.add_option(
+            '--line_width_scale_perc', dest='line_width_scale_perc', type='float', default=float(1), action='store',
+            help='Percentage of SVG line width. Use e.g. 26.46 to compensate a px/mm confusion. Default: 100 [%]')
 
         self.OptionParser.add_option(
             "-n", '--line_fn', dest='line_fn', type='int', default=int(4), action='store',
@@ -1240,7 +1249,8 @@ fudge = 0.1;
             self.f.write('zsize = %s;\n' % (self.options.zsize))
             self.f.write('line_fn = %d;\n' % (self.options.line_fn))
             self.f.write('min_line_width = %s;\n' % (self.options.min_line_width))
-            self.f.write('function min_line_mm(w) = max(min_line_width, w) * %g/25.4;\n\n' % self.dpi)
+            self.f.write('line_width_scale = %s;\n' % (self.options.line_width_scale_perc * 0.01))
+            self.f.write('function min_line_mm(w) = max(min_line_width, w * line_width_scale) * %g/25.4;\n\n' % self.dpi)
 
             for key in self.paths:
                 self.f.write('\n')
