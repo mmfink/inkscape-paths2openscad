@@ -6,8 +6,12 @@ NAME = $(notdir $(CURDIR))
 PYTHON_VERSION = 2.7.8
 VIRTUALENV_VERSION = 1.11.6
 
+
 .PHONY: all
 all: test
+
+include make-includes/python.mk
+include make-includes/variables.mk
 
 #
 # pep8 seems to disallow visually aligned code in a tabular way.
@@ -21,7 +25,7 @@ all: test
 .PHONY: test
 test: virtualenv
 	. virtualenv/bin/activate && \
-		pip install --requirement python-test-requirements.txt && \
+		pip2 install --requirement python-test-requirements.txt && \
 		$(MAKE) METHOD=git PEP8_OPTIONS='--max-line-length=140 --ignore=E127,E221,E241,E272' python-pep8
 
 .PHONY: clean
@@ -57,6 +61,3 @@ install:
 	install -m 755 -t $(DEST) *.py
 	install -m 644 -t $(DEST) *.inx
 
-
-include make-includes/python.mk
-include make-includes/variables.mk

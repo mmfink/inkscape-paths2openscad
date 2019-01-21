@@ -27,22 +27,29 @@
     <param type="boolean" name="stlpost" gui-text="STL Nachbearbeitung" xml:lang="de">false</param>
     <param type="description" name="stlpost_help" xml:lang="de">Starte beispielsweise einen 'slicer' nach der STL-Konvertierung. Siehe auch den Reiter Kommandos.</param>
 
-    <param name="stlmodule" type="boolean" _gui-text="Erzeuge ein Modul">false</param>
-    <_param name="stlmodule_help" type="description">Rendern Sie das Objekt nicht in der Scad-Datei, erstellen Sie eine für den Import geeignete Datei.</_param>
-    <param type="description" name="spacer"><!-- --></param>
+    <param name="stlmodule" type="boolean" _gui-text="Erzeuge nur ein Modul">false</param>
   </page>
 
   <page name="tuning" gui-text="Feinheiten" xml:lang="de">
     <param type="float" name="smoothness" min="0.0001" max="5" gui-text="Glättung" xml:lang="de">0.2</param>
     <param type="description" name="smoothness_help" xml:lang="de">Wird verwendet, wenn Kurven dargestellt werden. Kleinere Werte sind glatter. Bereich: 0.0001 bis 5</param>
+    <param type="description" name="spacer"><!-- --></param>
+    <param type="float" name="chamfer" min="0.0" gui-text="Radius (Verrundung) hinzufügen [mm]" xml:lang="de">0</param>
+    <param name="chamfer_fn" type="optiongroup" appearance="minimal"  _gui-text="Genauigkeit der Verrundung ($fn)">
+      <option value="4">4: Rough (fast)</option>
+      <option value="12">12: Medium (slow)</option>
+      <option value="16">16: Fine (slower)</option>
+      <option value="32">32: Perfect (slowest)</option>
+    </param>
     <param type="description" name="outline_header" appearance="header" xml:lang="de">Umrisslinien-Modus</param>
-    <param type="description" name="outline_help" xml:lang="de">Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. Normalerweise werden gefüllte Flächen von geschlossenen Objekten extrudiert, die Dicke der Randlinie wird dabei nicht hinzugerechnet. Offene Linienzüge oder Objekte ohne Füllung werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus nicht beachtet.</param>
+    <param type="description" name="outline_help" xml:lang="de">Objekte werden nach einer von zwei Methoden in 3D extrudiert: Normal oder Umrisslinien-Modus. Normalerweise werden gefüllte Flächen extrudiert, die Dicke der Randlinie wird dabei nicht hinzugerechnet. Objekte ohne Füllung werden im Umrisslinien-Modus extrudiert. Die Anweisung 'Scale: XX %' wird im Umrisslinien-Modus nicht beachtet.</param>
     <param type="float" name="min_line_width" min="0.1" max="10" gui-text="Minimale Linienbreite [mm]" xml:lang="de">1.0</param>
     <param type="float" name="line_width_scale_perc" min="1" max="10000" gui-text="Skaliere Linienbreite [%]" xml:lang="de">100.0</param>
     <param type="optiongroup" name="line_fn" appearance="minimal" gui-text="Genauigkeit der Linienbreite ($fn)" xml:lang="de">
-      <option value="4" xml:lang="de">Grob (schnell)</option>
-      <option value="8" xml:lang="de">Mittel (langsam)</option>
-      <option value="16" xml:lang="de">Fein (sehr langsam)</option>
+      <option value="4" xml:lang="de">4: Grob (schnell)</option>
+      <option value="8" xml:lang="de">8: Mittel (langsam)</option>
+      <option value="16" xml:lang="de">16: Fein (langsamer)</option>
+      <option value="32" xml:lang="de">32: Perfekt (sehr langsam)</option>
     </param>
     <param type="boolean" name="force_line" gui-text="Umrisslinien-Modus immer verwenden; Füllungen werden ignoriert" xml:lang="de">False</param>
     <param type="description" name="spacer"><!-- --></param>
