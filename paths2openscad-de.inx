@@ -64,7 +64,7 @@
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
     <param type="string" name="scadviewcmd" gui-text="Ansicht mit OpenSCAD: " xml:lang="de">openscad '{NAME}.scad'</param>
-    <param type="description" name="scadviewcmd_help" xml:lang="de">Wird nur gestartet falls ein Kommando gleichen Namens nicht bereits läuft. Wird nicht-blockierend gestarted. Ein laufendes OpenSCAD greift geänderte Datei-Inhalte automatisch auf.</param>
+    <param type="description" name="scadviewcmd_help" xml:lang="de">Wird nur gestartet, falls kein Kommando gleichen Namens bereits läuft. Wird nicht-blockierend gestarted. Ein laufendes OpenSCAD greift geänderte Datei-Inhalte automatisch auf.</param>
     <param type="description" name="scadviewcmd_default_linux" xml:lang="de">Linux: openscad '{NAME}.scad'</param>
     <param type="description" name="spacer"><!-- --></param>
 

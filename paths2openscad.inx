@@ -71,7 +71,7 @@ Mac: /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD</_param>
 
     <!-- CAUTION: keep this command in sync with the default INX_SCADVIEW in paths2openscad.py -->
     <param name="scadviewcmd" type="string" _gui-text="View in OpenSCAD: ">openscad '{NAME}.scad'</param>
-    <_param name="scadviewcmd_help" type="description">Is only started no command of the same name is running. Always started non-blocking. A running OpenSCAD automatically picks up changed file contents. Defaults:</_param>
+    <_param name="scadviewcmd_help" type="description">Is only started, if no command of the same name is running. Always started non-blocking. A running OpenSCAD automatically picks up changed file contents. Defaults:</_param>
     <_param name="scadviewcmd_default_linux" type="description">Linux: openscad '{NAME}.scad'</_param>
     <_param name="spacer" type="description"><!-- --></_param>
 
