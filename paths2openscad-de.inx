@@ -114,7 +114,7 @@ in Pfad umwandeln" vorbereitet werden.
 Inkscape verwendet Pixel (px) als interne Masseinheit.
 Diese werden entsprechend des SVG Standards in Millimeter
 umgerechnet: 96 px = 1 inch = 25.4 mm.
-(Vor inkscape 0.92 war der Standard 90 px pro inch,
+(Vor Inkscape 0.92 war der Standard 90 px pro inch,
 Adobe Produkte verwenden oft 75 px pro inch)
 
 v0.25
@@ -124,7 +124,7 @@ Juergen Weigert (juergen @ fabmail org)
 
 Aktualisierungen siehe https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
-<!-- keep the version numnber in sync with paths2openscad.py header comments and translated copies -->
+<!-- keep the version number in sync with paths2openscad.py header comments and translated copies -->
 </param>
   </page>
 </param>
