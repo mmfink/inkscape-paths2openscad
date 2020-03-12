@@ -27,7 +27,7 @@
     <param type="boolean" name="stlpost" gui-text="STL Nachbearbeitung" xml:lang="de">false</param>
     <param type="description" name="stlpost_help" xml:lang="de">Starte beispielsweise einen 'slicer' nach der STL-Konvertierung. Siehe auch den Reiter Kommandos.</param>
 
-    <param name="stlmodule" type="boolean" _gui-text="Erzeuge nur ein Modul">false</param>
+    <param name="stlmodule" type="boolean" gui-text="Erzeuge nur ein Modul">false</param>
   </page>
 
   <page name="tuning" gui-text="Feinheiten" xml:lang="de">
@@ -35,7 +35,7 @@
     <param type="description" name="smoothness_help" xml:lang="de">Wird verwendet, wenn Kurven dargestellt werden. Kleinere Werte sind glatter. Bereich: 0.0001 bis 5</param>
     <param type="description" name="spacer"><!-- --></param>
     <param type="float" name="chamfer" min="0.0" gui-text="Radius (Verrundung) hinzufügen [mm]" xml:lang="de">0</param>
-    <param name="chamfer_fn" type="optiongroup" appearance="minimal"  _gui-text="Genauigkeit der Verrundung ($fn)">
+    <param name="chamfer_fn" type="optiongroup" appearance="minimal"  gui-text="Genauigkeit der Verrundung ($fn)">
       <option value="4">4: Rough (fast)</option>
       <option value="12">12: Medium (slow)</option>
       <option value="16">16: Fine (slower)</option>
