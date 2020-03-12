@@ -36,11 +36,11 @@
     <_param name="smoothness_help" type="description">Used when rendering curves. Smaller values are smoother. Range: 0.0001 to 5
     </_param>
     <param type="float" name="chamfer" min="0.0" gui-text="Add chamfer radius [mm]" xml:lang="de">0</param>
-    <param name="chamfer_fn" type="optiongroup" appearance="minimal"  _gui-text="Chamfer präzision ($fn)">
+    <param name="chamfer_fn" type="optiongroup" appearance="minimal"  _gui-text="Chamfer precision ($fn)">
       <option value="4">4: Rough (fast)</option>
       <option value="12">12: Medium (slow)</option>
       <option value="16">16: Fine (slower)</option>
-      <option value="32">32: Perfekt (slowest)</option>
+      <option value="32">32: Perfect (slowest)</option>
     </param>
     <_param name="outline_header" type="description" appearance="header">Outline Mode</_param>
     <_param name="outline_help" type="description">Objects are extruded into 3D either in normal mode, or in outline mode. Normally filled areas are extruded, ignoring the line width. Objects with no fill are rendered in outline mode.
@@ -53,7 +53,7 @@ Note: the 'Scale: XX %' instruction has no effect in outline mode.</_param>
       <option value="4">4: Rough (fast)</option>
       <option value="8">8: Medium (slow)</option>
       <option value="16">16: Fine (slower)</option>
-      <option value="32">32: Perfekt (slowest)</option>
+      <option value="32">32: Perfect (slowest)</option>
     </param>
 
     <param name="force_line" type="boolean" _gui-text="Force outline mode, ignore fill">False</param>
@@ -92,11 +92,11 @@ Mac: /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD</_param>
 If an object's ID is in either name_XXX_mm or name_XXXmm
 format, then XXX is translated into zsize in millimeters.
 Use . or _ as separator for a decimal number.
-Note that all whitespace or comma are saved as '_' in ID.
+Note that any whitespace or comma is saved as '_' in the ID.
     </_param>
     <_param name="extrusion_2" type="description" appearance="header">Syntax for the object property description</_param>
     <_param name="extrusion_3" type="description" xml:space="preserve">Depth: 10 mm
-  Linear extrusion length (or Z-Size)) of the object.
+  Linear extrusion length (or Z-Size) of the object.
 
 Antimatter: true
   Object is part of the difference set, which is
@@ -108,7 +108,7 @@ Offset: 4.5 mm
 Taper: 90 %           or           Taper: 120,60 %
   Scale the object along its Z-axis. The bottom surface always
   is as drawn, but the top surface is scaled to this value.
-  If two values are given (separated by Komma), different
+  If two values are given (separated by commas), different
   scaling applies along X- and Y-axis.
 
 Parameters in the objects take precedence over groups.</_param>
@@ -118,13 +118,13 @@ Parameters in the objects take precedence over groups.</_param>
     <_param name="aboutpage" type="description" xml:space="preserve">
 This extension converts Inkscape paths to
 extruded polygons in OpenSCAD.  Before
-using, some objects must firat be converted to paths
+using, some objects must first be converted to paths
 with the "Path &gt; Object to Path" menu item.
 
 Inkscape's units of pixels are converted
 to millimeters using the SVG standard's
 definition of 96 px = 1 inch = 25.4 mm.
-(Before inkscape 0.92 the standard was 90 px per inch,
+(Before Inkscape 0.92 the standard was 90 px per inch,
 Adobe products often use 75 px per inch)
 
 v0.26
@@ -134,7 +134,7 @@ Juergen Weigert (juergen @ fabmail org)
 
 Find updates at https://github.com/fablabnbg/inkscape-paths2openscad/releases
 
-<!-- keep the version numnber in sync with paths2openscad.py header comments and translated copies -->
+<!-- keep the version number in sync with paths2openscad.py header comments and translated copies -->
 </_param>
   </page>
 </param>

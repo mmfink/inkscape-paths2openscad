@@ -77,7 +77,7 @@
 #        FIXME: should really use inksvg.py here too!
 #
 # 2018.09-09, juergen@fabmail.org
-#   0.24 merged module feature, renamed Heigh,Raise to Zsize,Zoffset
+#   0.24 merged module feature, renamed Height,Raise to Zsize,Zoffset
 #
 # 2019-01-18, juergen@fabmail.org
 #   0.25 Allow Depth,Offset instead of Zsize,Zoffset
@@ -762,7 +762,7 @@ class OpenSCAD(inkex.Effect):
                 elif polyInPoly(path[i][0], path[i][1], path[j][0], path[j][1]):
                     # subpath j contains subpath i
                     contains[j].append(i)
-                    # subpath i is containd in subpath j
+                    # subpath i is contained in subpath j
                     contained_by[i].append(j)
 
         # Generate an OpenSCAD module for this path
@@ -935,7 +935,7 @@ class OpenSCAD(inkex.Effect):
             if s == 'display:none':
                 continue
 
-            # First apply the current matrix transform to this node's tranform
+            # First apply the current matrix transform to this node's transform
             matNew = simpletransform.composeTransform(
                 matCurrent, simpletransform.parseTransform(node.get("transform")))
 
@@ -1218,7 +1218,7 @@ class OpenSCAD(inkex.Effect):
         # First traverse the document (or selected items), reducing
         # everything to line segments.  If working on a selection,
         # then determine the selection's bounding box in the process.
-        # (Actually, we just need to know it's extrema on the x-axis.)
+        # (Actually, we just need to know its extrema on the x-axis.)
 
         if self.options.ids:
             # Traverse the selected objects

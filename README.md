@@ -42,7 +42,7 @@ Windows
 
 3. open the paths to OpenSCAD extension in inkscape, got to the Commands tab. 
 
-   Replace all occurances of 'openscad' with the full path to openscad.exe -- also include the quotes. E.g.:
+   Replace all occurrences of 'openscad' with the full path to openscad.exe -- also include the quotes. E.g.:
    
    ```
    "C:\Program Files\OpenSCAD\openscad.exe" "{NAME}.scad"
