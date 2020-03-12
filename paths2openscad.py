@@ -85,6 +85,9 @@
 #   Added parameter line_width_scale.
 #   Added parameter chamfer, and module chamfer_sphere for doing minkowski
 #
+# 2020-03-12, juergen@fabmail.org
+#   0.26 DEB: relax dependency on 'openscad' to 'openscad | bash'
+#
 # CAUTION: keep the version number in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
@@ -116,7 +119,7 @@ import string
 import tempfile
 import gettext
 
-VERSION = '0.25';       # CAUTION: Keep in sync with all *.inx files
+VERSION = '0.26';       # CAUTION: Keep in sync with all *.inx files
 DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
 # Parse all these as 56.7 mm zsize:

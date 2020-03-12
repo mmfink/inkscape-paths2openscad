@@ -14,6 +14,13 @@ then
 	echo "Removing leftover files"
 	rm -rf $name
 fi
+
+if [ ! -f ../make-includes/python.mk ]; then
+	echo "make-includes has no python.mk"
+	echo "Try: (cd ..; git submodule init; git submodule update)"
+	exit 1
+fi
+
 echo "Copying contents ..."
 mkdir $name
 cp ../README.md $name/README

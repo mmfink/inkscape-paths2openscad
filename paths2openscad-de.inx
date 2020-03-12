@@ -117,7 +117,7 @@ umgerechnet: 96 px = 1 inch = 25.4 mm.
 (Vor inkscape 0.92 war der Standard 90 px pro inch,
 Adobe Produkte verwenden oft 75 px pro inch)
 
-v0.25
+v0.26
 Dan Newman (dan newman @ mtbaldy us)
 Josef Skladanka (jskladan @ redhat com)
 Juergen Weigert (juergen @ fabmail org)

@@ -4,7 +4,7 @@
 name=$1
 vers=$2
 url=http://github.com/fablabnbg/inkscape-paths2openscad
-requires="openscad, cura | bash"
+requires="openscad | bash, cura | bash"
 
 tmp=../out
 
