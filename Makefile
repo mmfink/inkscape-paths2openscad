@@ -1,5 +1,5 @@
 MAKE = /usr/bin/make
-DEST=/usr/share/inkscape/extensions
+DEST = /usr/share/inkscape/extensions
 
 NAME = $(notdir $(CURDIR))
 
@@ -21,12 +21,19 @@ include make-includes/variables.mk
 # E221 multiple spaces before operator
 # E241 multiple spaces after ','
 # E272 multiple spaces before keyword
+# E722 do not use bare except
 #
+PEP8_OPTIONS = --max-line-length=140 --ignore=E127,E221,E241,E722,E272
+
 .PHONY: test
 test: virtualenv
 	. virtualenv/bin/activate && \
 		pip2 install --requirement python-test-requirements.txt && \
-		$(MAKE) METHOD=git PEP8_OPTIONS='--max-line-length=140 --ignore=E127,E221,E241,E272' python-pep8
+		$(MAKE) METHOD=git python-pep8
+
+.PHONY: pep8
+pep8:
+	$(MAKE) python-pep8
 
 .PHONY: clean
 clean: clean-build clean-download clean-virtualenv clean-dist

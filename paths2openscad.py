@@ -88,6 +88,9 @@
 # 2020-03-12, juergen@fabmail.org
 #   0.26 DEB: relax dependency on 'openscad' to 'openscad | bash'
 #
+# 2020-04-05, juergen@fabmail.org
+#   0.27 Make pep8 happy again. Give proper error message, when file was not saved.
+#
 # CAUTION: keep the version number in sync with paths2openscad.inx about page
 
 # This program is free software; you can redistribute it and/or modify
@@ -119,7 +122,7 @@ import string
 import tempfile
 import gettext
 
-VERSION = '0.26';       # CAUTION: Keep in sync with all *.inx files
+VERSION = '0.27'       # CAUTION: Keep in sync with all *.inx files
 DEFAULT_WIDTH = 100
 DEFAULT_HEIGHT = 100
 # Parse all these as 56.7 mm zsize:
@@ -551,6 +554,8 @@ class OpenSCAD(inkex.Effect):
             "{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}docname")
         if sodipodi_docname is None:
             sodipodi_docname = "inkscape"
+            # the document was not saved. We can assume it is a modern inkscape
+            self.dpi = 96
         self.basename = re.sub(r"\.SVG", "", sodipodi_docname, flags=re.I)
         # a simple 'inkscape:version' does not work here. sigh....
         #
@@ -575,12 +580,14 @@ class OpenSCAD(inkex.Effect):
                 if int(m.group(1)) > 0 or int(m.group(2)) > 91:
                     self.dpi = 96                # 96dpi since inkscape 0.92
                     # inkex.errormsg("switching to 96 dpi")
+            self.inkscape_version = re.sub(" *\(unknown\) *", "", inkscape_version)
+        else:
+            self.inkscape_version = '-'
 
         # BUGFIX https://github.com/fablabnbg/inkscape-paths2openscad/issues/1
         # get zsize and width after dpi. This is needed for e.g. mm units.
         self.docHeight = self.getLength('height', DEFAULT_HEIGHT)
         self.docWidth = self.getLength('width', DEFAULT_WIDTH)
-        self.inkscape_version = re.sub(" *\(unknown\) *", "", inkscape_version)
 
         if (self.docHeight is None) or (self.docWidth is None):
             return False
@@ -1265,7 +1272,8 @@ class OpenSCAD(inkex.Effect):
 // keep the resulting .stl file manifold.
 fudge = 0.1;
 ''')
-            if self.options.chamfer < 0.001: self.options.chamfer = None
+            if self.options.chamfer < 0.001:
+                self.options.chamfer = None
 
             # writeout users parameters
             self.f.write('zsize = %s;\n' % (self.options.zsize))
@@ -1310,18 +1318,16 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
                 mi = '  '
                 self.f.write('  minkowski()\n  {\n')
 
-
             # Now output the list of modules to call
-            self.f.write('%s  difference()\n%s  {\n%s    union()\n%s    {\n' % (mi,mi,mi,mi))
+            self.f.write('%s  difference()\n%s  {\n%s    union()\n%s    {\n' % (mi, mi, mi, mi))
             for call in self.call_list:
-                self.f.write('%s      %s' % (mi,call))
-            self.f.write('%s    }\n%s    union()\n%s    {\n' % (mi,mi,mi))
+                self.f.write('%s      %s' % (mi, call))
+            self.f.write('%s    }\n%s    union()\n%s    {\n' % (mi, mi, mi))
             for call in self.call_list_neg:
-                self.f.write('%s      %s' % (mi,call))
-            self.f.write('%s    }\n%s  }\n' % (mi,mi))
+                self.f.write('%s      %s' % (mi, call))
+            self.f.write('%s    }\n%s  }\n' % (mi, mi))
             if self.options.chamfer:
                 self.f.write('    chamfer_sphere();\n  }\n')
-
 
             # The module that calls all the other ones.
             if self.options.stlmodule == 'true':
