@@ -8,6 +8,12 @@
 # such, paths derived from text may meet with mixed results.
 
 # Written by Daniel C. Newman ( dan dot newman at mtbaldy dot us )
+#
+# 2020-06-18
+#   Updated by Sillyfrog (https://github.com/sillyfrog) to support
+#   Inkscape v1.0 (exclusively, prior versions) are no longer supported).
+#   Updated to run under python3 now python2 is end of life.
+#
 # 10 June 2012
 #
 # 15 June 2012
@@ -111,11 +117,10 @@ import os
 import sys
 import os.path
 import inkex
-import simplepath
-import simpletransform
-import cubicsuperpath
-import cspsubdiv
-import bezmisc
+import inkex.localization
+import inkex.paths
+import inkex.bezier
+from inkex.transforms import Transform
 import re
 import time
 import string
@@ -355,12 +360,12 @@ def subdivideCubicPath(sp, flat, i=1):
 
             b = (p0, p1, p2, p3)
 
-            if cspsubdiv.maxdist(b) > flat:
+            if inkex.bezier.maxdist(b) > flat:
                 break
 
             i += 1
 
-        one, two = bezmisc.beziersplitatt(b, 0.5)
+        one, two = inkex.bezier.beziersplitatt(b, 0.5)
         sp[i - 1][2] = one[1]
         sp[i][0] = two[2]
         p = [one[2], one[3], two[1]]
@@ -417,172 +422,162 @@ def msg_extrude_by_hull_and_paths(id, prefix):
 class OpenSCAD(inkex.Effect):
     def __init__(self):
 
-        inkex.localize()  # does not help for localizing my *.inx file
+        inkex.localization.localize()  # does not help for localizing my *.inx file
         inkex.Effect.__init__(self)
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--tab",  # NOTE: value is not used.
             action="store",
-            type="string",
             dest="tab",
             default="splash",
             help="The active tab when Apply was pressed",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--smoothness",
             dest="smoothness",
-            type="float",
+            type=float,
             default=float(0.2),
             action="store",
             help="Curve smoothing (less for more)",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--chamfer",
             dest="chamfer",
-            type="float",
+            type=float,
             default=float(1.),
             action="store",
             help="Add a chamfer radius, displacing all object walls outwards [mm]",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--chamfer_fn",
             dest="chamfer_fn",
-            type="int",
+            type=int,
             default=int(4),
             action="store",
             help="Chamfer precision ($fn when generating the minkowski sphere)",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--depth",
             "--zsize",
             dest="zsize",
-            type="string",
             default="5",
             action="store",
             help="Depth (Z-size) [mm]",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--min_line_width",
             dest="min_line_width",
-            type="float",
+            type=float,
             default=float(1),
             action="store",
             help="Line width for non closed curves [mm]",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--line_width_scale_perc",
             dest="line_width_scale_perc",
-            type="float",
+            type=float,
             default=float(1),
             action="store",
             help="Percentage of SVG line width. Use e.g. 26.46 to compensate a px/mm confusion. Default: 100 [%]",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "-n",
             "--line_fn",
             dest="line_fn",
-            type="int",
+            type=int,
             default=int(4),
             action="store",
             help="Line width precision ($fn when constructing hull)",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--force_line",
             action="store",
-            type="inkbool",
+            type=inkex.utils.Boolean,
             dest="force_line",
             default=False,
             help="Force outline mode.",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--fname",
             dest="fname",
-            type="string",
             default="{NAME}.scad",
             action="store",
             help="openSCAD output file derived from the svg file name.",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--parsedesc",
             dest="parsedesc",
-            type="string",
             default="true",
             action="store",
             help="Parse zsize and other parameters from object descriptions",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--scadview",
             dest="scadview",
-            type="string",
             default="false",
             action="store",
             help="Open the file with openscad ( details see --scadviewcmd option )",
         )
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--scadviewcmd",
             dest="scadviewcmd",
-            type="string",
             default=INX_SCADVIEW,
             action="store",
             help="Command used start an openscad viewer. Use {SCAD} for the openSCAD input.",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--scad2stl",
             dest="scad2stl",
-            type="string",
             default="false",
             action="store",
             help="Also convert to STL ( details see --scad2stlcmd option )",
         )
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--scad2stlcmd",
             dest="scad2stlcmd",
-            type="string",
             default=INX_SCAD2STL,
             action="store",
             help="Command used to convert to STL. You can use {NAME}.scad for the openSCAD file to read and "
             + "{NAME}.stl for the STL file to write.",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--stlpost",
             dest="stlpost",
-            type="string",
             default="false",
             action="store",
             help="Start e.g. a slicer. This implies the --scad2stl option. ( see --stlpostcmd )",
         )
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--stlpostcmd",
             dest="stlpostcmd",
-            type="string",
             default=INX_STL_POSTPROCESSING,
             action="store",
             help="Command used for post processing an STL file (typically a slicer). You can use {NAME}.stl for the STL file.",
         )
 
-        self.OptionParser.add_option(
+        self.arg_parser.add_argument(
             "--stlmodule",
             dest="stlmodule",
-            type="string",
             default="false",
             action="store",
             help="Output configured to comment out final rendering line, to create a module file for import.",
         )
 
-        self.dpi = 90.0  # factored out for inkscape-0.92
+        self.userunitsx = 1.0  # Move to pure userunits per mm for v1.0
+        self.userunitsy = 1.0
         self.px_used = False  # raw px unit depends on correct dpi.
         self.cx = float(DEFAULT_WIDTH) / 2.0
         self.cy = float(DEFAULT_HEIGHT) / 2.0
@@ -609,7 +604,7 @@ class OpenSCAD(inkex.Effect):
 
         self.docWidth = float(DEFAULT_WIDTH)
         self.docHeight = float(DEFAULT_HEIGHT)
-        self.docTransform = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+        self.docTransform = Transform(None)
 
         # Dictionary of warnings issued.  This to prevent from warning
         # multiple times about the same problem
@@ -638,21 +633,21 @@ class OpenSCAD(inkex.Effect):
             # Couldn't parse the value
             return None
         elif u == "mm":
-            return float(v) * (self.dpi / 25.4)
+            return float(v) * (self.userunitsx)
         elif u == "cm":
-            return float(v) * (self.dpi * 10.0 / 25.4)
+            return float(v) * (self.userunitsx * 10.0)
         elif u == "m":
-            return float(v) * (self.dpi * 1000.0 / 25.4)
+            return float(v) * (self.userunitsx * 1000.0)
         elif u == "in":
-            return float(v) * self.dpi
+            return float(v) * self.userunitsx * 25.4
         elif u == "ft":
-            return float(v) * 12.0 * self.dpi
+            return float(v) * 12.0 * self.userunitsx * 25.4
         elif u == "pt":
             # Use modern "Postscript" points of 72 pt = 1 in instead
             # of the traditional 72.27 pt = 1 in
-            return float(v) * (self.dpi / 72.0)
+            return float(v) * (self.userunitsx * 25.4 / 72.0)
         elif u == "pc":
-            return float(v) * (self.dpi / 6.0)
+            return float(v) * (self.userunitsx * 25.4 / 6.0)
         elif u == "px":
             self.px_used = True
             return float(v)
@@ -661,14 +656,12 @@ class OpenSCAD(inkex.Effect):
             return None
 
     def getDocProps(self):
-
         """
         Get the document's height and width attributes from the <svg> tag.
         Use a default value in case the property is not present or is
         expressed in units of percentages.
         """
-
-        inkscape_version = self.document.getroot().get(
+        self.inkscape_version = self.document.getroot().get(
             "{http://www.inkscape.org/namespaces/inkscape}version"
         )
         sodipodi_docname = self.document.getroot().get(
@@ -676,39 +669,8 @@ class OpenSCAD(inkex.Effect):
         )
         if sodipodi_docname is None:
             sodipodi_docname = "inkscape"
-            # the document was not saved. We can assume it is a modern inkscape
-            self.dpi = 96
+            # the document was not saved. We can assume it is v1 inkscape
         self.basename = re.sub(r"\.SVG", "", sodipodi_docname, flags=re.I)
-        # a simple 'inkscape:version' does not work here. sigh....
-        #
-        # BUG:
-        # inkscape 0.92 uses 96 dpi, inkscape 0.91 uses 90 dpi.
-        # From inkscape 0.92 we receive an svg document that has
-        # both inkscape:version and sodipodi:docname if the document
-        # was ever saved before. If not, both elements are missing.
-        #
-        import lxml.etree
-
-        # inkex.errormsg(lxml.etree.tostring(self.document.getroot()))
-        if inkscape_version:
-            """
-            inkscape:version="0.91 r"
-            inkscape:version="0.92.0 ..."
-            inkscape:version="0.92.4 (unknown)"
-           See also https://github.com/fablabnbg/paths2openscad/issues/1
-            """
-            # inkex.errormsg("inkscape:version="+inkscape_version)
-            m = re.match(r"(\d+)\.(\d+)", inkscape_version)
-            if m:
-                if int(m.group(1)) > 0 or int(m.group(2)) > 91:
-                    self.dpi = 96  # 96dpi since inkscape 0.92
-                    # inkex.errormsg("switching to 96 dpi")
-            self.inkscape_version = re.sub(" *\(unknown\) *", "", inkscape_version)
-        else:
-            self.inkscape_version = "-"
-
-        # BUGFIX https://github.com/fablabnbg/inkscape-paths2openscad/issues/1
-        # get zsize and width after dpi. This is needed for e.g. mm units.
         self.docHeight = self.getLength("height", DEFAULT_HEIGHT)
         self.docWidth = self.getLength("width", DEFAULT_WIDTH)
 
@@ -718,55 +680,54 @@ class OpenSCAD(inkex.Effect):
             return True
 
     def handleViewBox(self):
-
         """
         Set up the document-wide transform in the event that the document has
-        an SVG viewbox
+        an SVG viewbox, which it should as of v1.0
+        For details, see https://wiki.inkscape.org/wiki/index.php/Units_In_Inkscape
         """
 
         if self.getDocProps():
             viewbox = self.document.getroot().get("viewBox")
             if viewbox:
-                vinfo = viewbox.strip().replace(",", " ").split(" ")
-                if (vinfo[2] != 0) and (vinfo[3] != 0):
-                    sx = self.docWidth / float(vinfo[2])
-                    sy = self.docHeight / float(vinfo[3])
-                    self.docTransform = simpletransform.parseTransform(
-                        "scale(%f,%f)" % (sx, sy)
-                    )
+                vinfo = viewbox.strip().replace(",", " ").split()
+                vinfo = [float(i) for i in vinfo]
+                unitsx, unitsy = abs(vinfo[0] - vinfo[2]), abs(vinfo[1] - vinfo[3])
+                self.userunitsx = self.docWidth / unitsx
+                # The above wiki page suggests that x and y scaling maybe different
+                # however in practice they are not
+                self.userunitsy = self.userunitsx
+                self.docTransform = Transform(
+                    "scale(%f,%f)" % (self.userunitsx, self.userunitsy)
+                )
 
     def getPathVertices(self, path, node=None, transform=None):
-
         """
         Decompose the path data from an SVG element into individual
         subpaths, each subpath consisting of absolute move to and line
         to coordinates.  Place these coordinates into a list of polygon
         vertices.
         """
-
-        if (not path) or (len(path) == 0):
-            # Nothing to do
-            return None
-
-        # parsePath() may raise an exception.  This is okay
-        sp = simplepath.parsePath(path)
-        if (not sp) or (len(sp) == 0):
+        if not path:
             # Path must have been devoid of any real content
             return None
 
         # Get a cubic super path
-        p = cubicsuperpath.CubicSuperPath(sp)
+        p = inkex.paths.CubicSuperPath(path)
         if (not p) or (len(p) == 0):
             # Probably never happens, but...
             return None
 
         if transform:
-            simpletransform.applyTransformToPath(transform, p)
+            p = p.transform(transform)
 
         # Now traverse the cubic super path
         subpath_list = []
         subpath_vertices = []
 
+        sp_xmin = None
+        sp_xmax = None
+        sp_ymin = None
+        sp_ymax = None
         for sp in p:
 
             # We've started a new subpath
@@ -886,8 +847,8 @@ class OpenSCAD(inkex.Effect):
 
         # Determine which polys contain which
 
-        contains = [[] for i in xrange(len(path))]
-        contained_by = [[] for i in xrange(len(path))]
+        contains = [[] for i in range(len(path))]
+        contained_by = [[] for i in range(len(path))]
 
         for i in range(0, len(path)):
             for j in range(i + 1, len(path)):
@@ -916,7 +877,7 @@ class OpenSCAD(inkex.Effect):
 
         # FIXME: works with document units == 'mm', but otherwise untested..
         stroke_width_mm = self.LengthWithUnit(stroke_width, default_unit="mm")
-        stroke_width_mm = str(stroke_width_mm * 25.4 / self.dpi)  # px to mm
+        stroke_width_mm = str(stroke_width_mm * self.userunitsx)  # px to mm
         fill_color = style.get("fill", "#FFF")
         if fill_color == "none":
             filled = False
@@ -1002,9 +963,9 @@ class OpenSCAD(inkex.Effect):
         # #### end global data for msg_*() functions. ####
 
         self.f.write("module poly_" + id + "(h, w, s, res=line_fn)\n{\n")
-        self.f.write(
-            "  scale([25.4/%g, -25.4/%g, 1]) union()\n  {\n" % (self.dpi, self.dpi)
-        )
+        # Element is transformed to correct size, so scale is now just for the user to
+        # tweak after the fact
+        self.f.write("  scale([custom_scale_x, -custom_scale_y, 1]) union()\n  {\n")
 
         # And add the call to the call list
         # Z-size is set by the overall module parameter
@@ -1061,10 +1022,7 @@ class OpenSCAD(inkex.Effect):
         self.f.write("  }\n}\n")
 
     def recursivelyTraverseSvg(
-        self,
-        aNodeList,
-        matCurrent=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
-        parent_visibility="visible",
+        self, aNodeList, matCurrent=Transform(None), parent_visibility="visible"
     ):
 
         """
@@ -1100,9 +1058,7 @@ class OpenSCAD(inkex.Effect):
                 continue
 
             # First apply the current matrix transform to this node's transform
-            matNew = simpletransform.composeTransform(
-                matCurrent, simpletransform.parseTransform(node.get("transform"))
-            )
+            matNew = matCurrent * Transform(node.get("transform"))
 
             if node.tag == inkex.addNS("g", "svg") or node.tag == "g":
 
@@ -1137,9 +1093,7 @@ class OpenSCAD(inkex.Effect):
                     y = float(node.get("y", "0"))
                     # Note: the transform has already been applied
                     if (x != 0) or (y != 0):
-                        matNew2 = composeTransform(
-                            matNew, parseTransform("translate(%f,%f)" % (x, y))
-                        )
+                        matNew2 = matNew * Transform("translate(%f,%f)" % (x, y))
                     else:
                         matNew2 = matNew
                     v = node.get("visibility", v)
@@ -1170,12 +1124,12 @@ class OpenSCAD(inkex.Effect):
                 w = float(node.get("width", "0"))
                 h = float(node.get("height", "0"))
                 a = []
-                a.append(["M ", [x, y]])
-                a.append([" l ", [w, 0]])
-                a.append([" l ", [0, h]])
-                a.append([" l ", [-w, 0]])
-                a.append([" Z", []])
-                self.getPathVertices(simplepath.formatPath(a), node, matNew)
+                a.append(["M", [x, y]])
+                a.append(["l", [w, 0]])
+                a.append(["l", [0, h]])
+                a.append(["l", [-w, 0]])
+                a.append(["Z", []])
+                self.getPathVertices(a, node, matNew)
 
             elif node.tag == inkex.addNS("line", "svg") or node.tag == "line":
 
@@ -1194,11 +1148,11 @@ class OpenSCAD(inkex.Effect):
                 if (not x1) or (not y1) or (not x2) or (not y2):
                     continue
                 a = []
-                a.append(["M ", [x1, y1]])
-                a.append([" L ", [x2, y2]])
-                self.getPathVertices(simplepath.formatPath(a), node, matNew)
+                a.append(["M", [x1, y1]])
+                a.append(["L", [x2, y2]])
+                self.getPathVertices(a, node, matNew)
 
-            elif node.tag == inkex.addNS("polyline", "svg") or node.tag == "polyline":
+            elif node.TAG in ["polygon", "polyline"]:
 
                 # Convert
                 #
@@ -1211,7 +1165,7 @@ class OpenSCAD(inkex.Effect):
                 # Note: we ignore polylines with no points
 
                 pl = node.get("points", "").strip()
-                if pl == "":
+                if not pl:
                     continue
 
                 pa = pl.split()
@@ -1221,32 +1175,18 @@ class OpenSCAD(inkex.Effect):
                         for i in range(0, len(pa))
                     ]
                 )
-                self.getPathVertices(d, node, matNew)
-
-            elif node.tag == inkex.addNS("polygon", "svg") or node.tag == "polygon":
-
-                # Convert
-                #
-                #  <polygon points="x1,y1 x2,y2 x3,y3 [...]"/>
-                #
-                # to
-                #
-                #   <path d="Mx1,y1 Lx2,y2 Lx3,y3 [...] Z"/>
-                #
-                # Note: we ignore polygons with no points
-
-                pl = node.get("points", "").strip()
-                if pl == "":
-                    continue
-
-                pa = pl.split()
-                d = "".join(
-                    [
-                        "M " + pa[i] if i == 0 else " L " + pa[i]
-                        for i in range(0, len(pa))
-                    ]
-                )
-                d += " Z"
+                d = []
+                first = True
+                for part in pl.split():
+                    x, y = part.split(",")
+                    coords = [float(x), float(y)]
+                    if first:
+                        d.append(["M", coords])
+                        first = False
+                    else:
+                        d.append(["L", coords])
+                if node.TAG == "polygon":
+                    d.append(["Z", []])
                 self.getPathVertices(d, node, matNew)
 
             elif (
@@ -1286,13 +1226,11 @@ class OpenSCAD(inkex.Effect):
                 cy = float(node.get("cy", "0"))
                 x1 = cx - rx
                 x2 = cx + rx
-                d = (
-                    "M %f,%f " % (x1, cy)
-                    + "A %f,%f " % (rx, ry)
-                    + "0 1 0 %f,%f " % (x2, cy)
-                    + "A %f,%f " % (rx, ry)
-                    + "0 1 0 %f,%f" % (x1, cy)
-                )
+                d = [
+                    ["M", (x1, cy)],
+                    ["A", (rx, ry, 0, 1, 0, x2, cy)],
+                    ["A", (rx, ry, 0, 1, 0, x1, cy)],
+                ]
                 self.getPathVertices(d, node, matNew)
 
             elif node.tag == inkex.addNS("pattern", "svg") or node.tag == "pattern":
@@ -1404,16 +1342,15 @@ class OpenSCAD(inkex.Effect):
             if node_transform is None:
                 return parent_transform
             else:
-                tr = simpletransform.parseTransform(node_transform)
+                tr = Transform(node_transform)
                 if parent_transform is None:
                     return tr
                 else:
-                    return simpletransform.composeTransform(parent_transform, tr)
+                    return parent_transform * tr
         else:
             return self.docTransform
 
     def effect(self):
-
         # Viewbox handling
         self.handleViewBox()
 
@@ -1425,8 +1362,8 @@ class OpenSCAD(inkex.Effect):
         if self.options.ids:
             # Traverse the selected objects
             for id in self.options.ids:
-                transform = self.recursivelyGetEnclosingTransform(self.selected[id])
-                self.recursivelyTraverseSvg([self.selected[id]], transform)
+                transform = self.recursivelyGetEnclosingTransform(self.svg.selected[id])
+                self.recursivelyTraverseSvg([self.svg.selected[id]], transform)
         else:
             # Traverse the entire document building new, transformed paths
             self.recursivelyTraverseSvg(self.document.getroot(), self.docTransform)
@@ -1437,12 +1374,10 @@ class OpenSCAD(inkex.Effect):
 
         # Determine which polygons lie entirely within other polygons
         try:
+            self.options.fname = self.options.fname.format(**{"NAME": self.basename})
             if os.sep not in self.options.fname and "PWD" in os.environ:
                 # current working directory of an extension seems to be the extension dir.
                 # Workaround using PWD, if available...
-                self.options.fname = self.options.fname.format(
-                    **{"NAME": self.basename}
-                )
                 self.options.fname = os.environ["PWD"] + "/" + self.options.fname
             scad_fname = os.path.expanduser(self.options.fname)
             if "/" != os.sep:
@@ -1477,6 +1412,11 @@ fudge = 0.1;
             if self.options.chamfer < 0.001:
                 self.options.chamfer = None
 
+            self.f.write("user_unit_scale_x = %s;\n" % (self.userunitsx))
+            self.f.write("user_unit_scale_y = %s;\n" % (self.userunitsy))
+            self.f.write("custom_scale_x = 1;\n")
+            self.f.write("custom_scale_y = 1;\n")
+
             # writeout users parameters
             self.f.write("zsize = %s;\n" % (self.options.zsize))
             self.f.write("line_fn = %d;\n" % (self.options.line_fn))
@@ -1488,8 +1428,8 @@ fudge = 0.1;
                 "line_width_scale = %s;\n" % (self.options.line_width_scale_perc * 0.01)
             )
             self.f.write(
-                "function min_line_mm(w) = max(min_line_width, w * line_width_scale) * %g/25.4;\n\n"
-                % self.dpi
+                "function min_line_mm(w) = max(min_line_width, w * line_width_scale) * %g;\n\n"
+                % self.userunitsx
             )
 
             for key in self.paths:
@@ -1552,7 +1492,7 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
             inkex.errormsg("ERROR: " + str(e))
 
         if self.options.scadview == "true":
-            pidfile = tempfile.gettempdir() + os.sep + "paths2openscad.pid"
+            pidfile = os.path.join(tempfile.gettempdir(), "paths2openscad.pid")
             running = False
             cmd = self.options.scadviewcmd.format(
                 **{"SCAD": scad_fname, "NAME": self.basename}
@@ -1669,4 +1609,4 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
 
 if __name__ == "__main__":
     e = OpenSCAD()
-    e.affect()
+    e.run()
