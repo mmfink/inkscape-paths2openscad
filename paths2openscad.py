@@ -169,7 +169,7 @@ def IsProcessRunning(pid):
         output = ps.stdout.read()
         ps.stdout.close()
         ps.wait()
-        if processId in output:
+        if str(pid) in output:
             return True
         return False
     else:
@@ -203,7 +203,7 @@ def parseLengthWithUnits(str, default_unit="px"):
 
     try:
         v = float(s)
-    except:
+    except Exception:
         return None, None
 
     return v, u
@@ -691,7 +691,8 @@ class OpenSCAD(inkex.Effect):
             if viewbox:
                 vinfo = viewbox.strip().replace(",", " ").split()
                 vinfo = [float(i) for i in vinfo]
-                unitsx, unitsy = abs(vinfo[0] - vinfo[2]), abs(vinfo[1] - vinfo[3])
+                unitsx = abs(vinfo[0] - vinfo[2])
+                # unitsy = abs(vinfo[1] - vinfo[3])
                 self.userunitsx = self.docWidth / unitsx
                 # The above wiki page suggests that x and y scaling maybe different
                 # however in practice they are not
@@ -796,9 +797,9 @@ class OpenSCAD(inkex.Effect):
             if len(elem):
                 try:
                     (key, val) = elem.strip().split(":")
-                except:
-                    print >>sys.stderr, "unparsable element '{1}' in style '{0}'".format(
-                        elem, style
+                except Exception:
+                    inkex.errormsg(
+                        "unparsable element '{1}' in style '{0}'".format(elem, style)
                     )
                 ret[key] = val
         return ret
@@ -888,9 +889,6 @@ class OpenSCAD(inkex.Effect):
                 "WARNING: " + rawid + " has fill:none and stroke:none, object ignored."
             )
             return
-
-        # inkex.errormsg('filled='+str(filled))
-        # inkex.errormsg(id+': style='+str(style))
 
         # #### global data for msg_*() functions. ####
         # fold subpaths into a single list of points and index paths.
@@ -1314,7 +1312,7 @@ class OpenSCAD(inkex.Effect):
                 # color output
                 pass
 
-            elif not isinstance(node.tag, basestring):
+            elif not isinstance(node.tag, (str, bytes)):
                 # This is likely an XML processing instruction such as an XML
                 # comment.  lxml uses a function reference for such node tags
                 # and as such the node tag is likely not a printable string.
@@ -1514,14 +1512,14 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
                     # Comment out the next line to always start a new instance of openscad.
                     running = IsProcessRunning(oldpid)
                     # print >> sys.stderr, "running {0}".format(running)
-            except:
+            except Exception:
                 pass
             if not running:
                 import subprocess
 
                 try:
                     tty = open("/dev/tty", "w")
-                except:
+                except Exception:
                     tty = subprocess.PIPE
                 try:
                     proc = subprocess.Popen(
@@ -1531,7 +1529,7 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
                     raise OSError("%s failed: errno=%d %s" % (cmd, e.errno, e.strerror))
                 try:
                     open(pidfile, "w").write(str(proc.pid) + "\n" + cmd + "\n")
-                except:
+                except Exception:
                     pass
             else:
                 # BUG alert:
@@ -1547,7 +1545,7 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
             )
             try:
                 os.unlink(stl_fname)
-            except:
+            except Exception:
                 pass
 
             import subprocess
@@ -1569,16 +1567,19 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
             len = -1
             try:
                 len = os.path.getsize(stl_fname)
-            except:
+            except Exception:
                 pass
             if len < 1000:
-                print >>sys.stderr, "CMD: {0}".format(cmd)
-                print >>sys.stderr, "WARNING: {0} is very small: {1} bytes.".format(
-                    stl_fname, len
+                inkex.errormsg(
+                    "CMD: {} WARNING: {} is very small: {} bytes.".format(
+                        cmd, stl_fname, len
+                    )
                 )
-                print >>sys.stderr, "= " * 24
-                print >>sys.stderr, "STDOUT:\n", stdout, "= " * 24
-                print >>sys.stderr, "STDERR:\n", stderr, "= " * 24
+                inkex.errormsg("= " * 24)
+                inkex.errormsg("STDOUT:\n{}".format(stdout))
+                inkex.errormsg("= " * 24)
+                inkex.errormsg("STDERR:\n{}".format(stderr))
+                inkex.errormsg("= " * 24)
                 if len <= 0:  # something is wrong. better stop here
                     self.options.stlpost = "false"
 
@@ -1588,7 +1589,7 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
                 )
                 try:
                     tty = open("/dev/tty", "w")
-                except:
+                except Exception:
                     tty = subprocess.PIPE
 
                 try:
@@ -1600,11 +1601,14 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
 
                 stdout, stderr = proc.communicate()
                 if stdout or stderr:
-                    print >>sys.stderr, "CMD: ", cmd, "\n", "= " * 24
+                    inkex.errmsg("CMD: {}".format(cmd))
+                    inkex.errormsg("= " * 24)
                 if stdout:
-                    print >>sys.stderr, "STDOUT:\n", stdout, "= " * 24
+                    inkex.errmsg("STDOUT: {}".format(stdout))
+                    inkex.errormsg("= " * 24)
                 if stderr:
-                    print >>sys.stderr, "STDERR:\n", stderr, "= " * 24
+                    inkex.errmsg("STDERR: {}".format(stderr))
+                    inkex.errormsg("= " * 24)
 
 
 if __name__ == "__main__":
