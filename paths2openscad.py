@@ -791,6 +791,9 @@ class OpenSCAD(inkex.Effect):
 
     def getPathStyle(self, node):
         style = node.get("style", "")
+        # .get default is not reliable, ensure value is a string
+        if not style:
+            style = ""
         ret = {}
         # fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1
         for elem in style.split(";"):
@@ -1457,7 +1460,8 @@ module chamfer_sphere(rad=chamfer, res=chamfer_fn)
             # Come up with a name for the module based on the file name.
             name = os.path.splitext(os.path.basename(self.options.fname))[0]
             # Remove all punctuation except underscore.
-            name = re.sub("[" + string.punctuation.replace("_", "") + "]", "", name)
+            badchars = string.punctuation.replace("_", "") + " "
+            name = re.sub("[" + badchars + "]", "_", name)
 
             self.f.write("\nmodule %s(h)\n{\n" % name)
             mi = ""
