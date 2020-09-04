@@ -97,10 +97,9 @@ Note that any whitespace or comma is saved as '_' in the ID.
     <_param name="extrusion_2" type="description" appearance="header">Syntax for the object property description</_param>
     <_param name="extrusion_3" type="description" xml:space="preserve">Depth: 10 mm
   Linear extrusion length (or Z-Size) of the object.
-
-Antimatter: true
-  Object is part of the difference set, which is
-  cut away from all other objects.
+  If the length is prefixed with "a", the object is "antimatter"
+  and is part of the difference set, which is cut away from all
+  other objects.
 
 Offset: 4.5 mm
   Move an object upwards to create a balcony (or window).
