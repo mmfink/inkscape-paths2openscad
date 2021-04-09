@@ -85,9 +85,8 @@
     <param type="description" name="extrusion_2" appearance="header" xml:lang="de">Syntax in der Objekteigenschaft Beschreibung</param>
     <param xml:space="preserve" type="description" name="extrusion_3" xml:lang="de">Depth: 10 mm
   Länge der linearen Extrusion des Objekts.
-
-Antimatter: true
-  Objekt ist Teil der Differenzmenge, welche von
+  Wenn die Länge mit "a" präfigiert ist, ist das Objekt
+  "Antimaterie" und ist Teil der Differenzmenge, welche von
   allen anderen Objekten weggeschnitten wird.
 
 Zoffset: 4.5 mm
