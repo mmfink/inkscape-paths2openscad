@@ -6,7 +6,7 @@
 
 <param type="notebook" name="tab">
   <page name="splash" gui-text="Pfade nach OpenSCAD" xml:lang="de">
-    <param type="string" name="fname" gui-text="Ausgabedatei" xml:lang="de">{NAME}.scad</param>
+    <param type="path" name="fname" gui-text="Ausgabedatei" mode="file_new" filetypes="scad" xml:lang="de">{NAME}.scad</param>
     <_param name="fname_help" type="description" xml:lang="de">Mit '{NAME}.scad' wird der Name vom svg übernommen.</_param>
 
     <param type="float" precision="2" name="zsize" min="0" max="1000" gui-text="Tiefe (Z) [mm]" xml:lang="de">5.0</param>
