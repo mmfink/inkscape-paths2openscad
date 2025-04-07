@@ -1,52 +1,25 @@
 paths2openscad
 ==============
-
-[![Downloads](https://img.shields.io/github/downloads/fablabnbg/inkscape-paths2openscad/total.svg?maxAge=2592000?style=flat-square)](https://github.com/fablabnbg/inkscape-paths2openscad/releases/latest)
-[![GitHub release](https://img.shields.io/github/release/fablabnbg/inkscape-paths2openscad.svg)](https://github.com/fablabnbg/paths2openscad/releases)
-[![Build Status](https://travis-ci.org/fablabnbg/inkscape-paths2openscad.svg?branch=master)](https://travis-ci.org/fablabnbg/inkscape-paths2openscad)
-
 <img align="right" src="https://cloud.githubusercontent.com/assets/3838734/3856761/e55ecdf2-1efb-11e4-97f8-7c3195fc361d.png" width="200" />
 
-Download and install for Debian and Ubuntu Linux: https://github.com/fablabnbg/inkscape-paths2openscad/releases
+SVG paths to OpenSCAD converter. 
 
+Forked from [fablabnbg/inkscape-paths2openscad](https://github.com/fablabnbg/inkscape-paths2openscad)
 
-SVG paths to OpenSCAD converter. Copied from Thingiverse things [24808](http://www.thingiverse.com/thing:24808) and [25036](http://www.thingiverse.com/thing:25036), both copyright user [dnewman](http://www.thingiverse.com/dnewman) and released under GPL v2 or later.
+**Original work:** credits and copyrights as released under GPL v2
+- [dnewman](http://www.thingiverse.com/dnewman): Thingiverse things [24808](http://www.thingiverse.com/thing:24808) and [25036](http://www.thingiverse.com/thing:25036)
 
-See also: Thingiverse things [1065500](http://www.thingiverse.com/thing:1065500)  Inkscape to OpenSCAD converter v7 by Neon22.
+**For versions 0.12 through 0.27**
+- Dan Newman (dan newman @ mtbaldy us)
+- Josef Skladanka (jskladan @ redhat com)
+- Juergen Weigert (juergen @ fabmail org)
 
-Examples published on thingiverse: https://www.thingiverse.com/tag:inkscape-3D
+with additional contributions by
+ - [Dan Fandrich](https://github.com/dfandrich)
+ - [sillyfrog](https://github.com/sillyfrog)
+ - [David Woods](https://github.com/birnam)
 
-Example for a scriptable call (untested)
-```
-inkscape --verb=EditSelectAll --verb=SelectionCombine --verb=EditDeselect --verb=command.extrude.openscad_auto.noprefs --verb=EditUndo --verb=EditUndo --verb=FileQuit /full/path/to/file.svg
-```
-
-Windows
--------
-
-1. install openscad
-
-2. Add OpenSCAD to the path:
-
-- Create a new Environment Variable:
-
-    Name: SCAD_PATH
-
-    Value: path to openscad.exe (e.g., C:\Program Files\OpenSCAD)
-
-- Add or extend the PATH environment variable:
-
-    Name: PATH
-
-    Value: %SCAD_PATH%
-
-3. open the paths to OpenSCAD extension in inkscape, got to the Commands tab. 
-
-   Replace all occurrences of 'openscad' with the full path to openscad.exe -- also include the quotes. E.g.:
-   
-   ```
-   "C:\Program Files\OpenSCAD\openscad.exe" "{NAME}.scad"
-   "C:\Program Files\OpenSCAD\openscad.exe" "{NAME}.scad" -o "{NAME}.stl"
-   ```
-   
-   
+**This fork**
+copyright Michelle M. Fink [mmfink](https://github.com/mmfink)
+In addition to the following contributors
+- [Dan Fandrich](https://github.com/dfandrich)
