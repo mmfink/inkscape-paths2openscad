@@ -1059,7 +1059,7 @@ class OpenSCAD(inkex.Effect):
                 continue
 
             # First apply the current matrix transform to this node's transform
-            matNew = matCurrent * Transform(node.get("transform"))
+            matNew = matCurrent @ Transform(node.get("transform"))
 
             if node.tag == inkex.addNS("g", "svg") or node.tag == "g":
 
@@ -1094,7 +1094,7 @@ class OpenSCAD(inkex.Effect):
                     y = float(node.get("y", "0"))
                     # Note: the transform has already been applied
                     if (x != 0) or (y != 0):
-                        matNew2 = matNew * Transform("translate(%f,%f)" % (x, y))
+                        matNew2 = matNew @ Transform("translate(%f,%f)" % (x, y))
                     else:
                         matNew2 = matNew
                     v = node.get("visibility", v)
@@ -1347,7 +1347,7 @@ class OpenSCAD(inkex.Effect):
                 if parent_transform is None:
                     return tr
                 else:
-                    return parent_transform * tr
+                    return parent_transform @ tr
         else:
             return self.docTransform
 
